@@ -5,12 +5,16 @@ import terser from '@rollup/plugin-terser';
 
 export default {
   input: 'src/index.js',
-  output: {
+  output: [{
     file: 'lib/ele-table.js',
     format: 'es',
     sourcemap: false,
     plugins: [terser()]
-  },
+  },{
+    file: 'docs/modules/ele-table.js',
+    format: 'es',
+    sourcemap: true,
+  }],
   plugins: [
     resolve(),
     babel({ babelHelpers: 'bundled' }),

@@ -6,5 +6,5 @@
 
 - 快速上手 / 低成本学习 / 灵活导入
 
-[GitHub](https://github.com/docsifyjs/docsify/)
+[GitHub](https://github.com/maxw2/ele-table-container)
 [查看文档](/guide/quickStart)
