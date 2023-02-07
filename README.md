@@ -12,7 +12,7 @@
 
 npm install ele-table-container
 
-import {Table, TableContainer} from 'ele-table'
+import {Table, TableContainer} from 'ele-table-container'
 
 Vue.components('ele-table', Table)
 // or
