@@ -1,0 +1,100 @@
+<!-- index.html -->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="modules/docsify.css" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script type="module">
+        import { Table, TableContainer } from '../lib/ele-table.js'
+        import BasicTable from './example/basicTable.js'
+        import StripeTable from './example/stripeTable.js'
+        import BorderTable from './example/borderTable.js'
+        import RowClassNameTable from './example/rowClassNameTable.js'
+        import HeightTable from './example/heightTable.js'
+        import FixedTable from './example/fixedTable.js'
+        import HeightAndFixedTable from './example/heightAndFixedTable.js'
+        import MaxHeightTable from './example/maxHeightTable.js'
+        import ColumnChild from './example/columnChild.js'
+        import HightlightTable from './example/hightlightTable.js'
+        import SelectionTable from './example/selectionTable.js'
+        import SortableTable from './example/sortableTable.js'
+        import FilterTable from './example/filterTable.js'
+        import SlotTable from './example/slotTable.js'
+        import expandTable from './example/expandTable.js'
+        import treeTable from './example/treeTable.js'
+        import headerSlotTable from './example/headerSlotTable.js'
+        import ShowSummaryTable from './example/showSummaryTable.js'
+        import RowSpanTable from './example/rowSpanTable.js'
+        import IndexTable from './example/indexTable.js'
+        import EleTableContainer from './example/tableContainer.js'
+        // test
+        import Example from './example/test.js'
+
+        window.$docsify = {
+            coverpage: true,
+            onlyCover: true,
+            repo: 'https://github.com/docsifyjs/docsify/',
+            loadSidebar: true,
+            subMaxLevel: 5,
+            loadNavbar: true,
+            vueComponents: {
+                'ele-table-container': TableContainer,
+                'ele-table': Table,
+                'basic-table': BasicTable,
+                'stripe-table': StripeTable,
+                'border-table': BorderTable,
+                'row-class-name-table': RowClassNameTable,
+                'height-table': HeightTable,
+                'fixed-table': FixedTable,
+                'height-and-fixed-table': HeightAndFixedTable,
+                'max-height-table': MaxHeightTable,
+                'column-child': ColumnChild,
+                'hight-light-table': HightlightTable,
+                'selection-table': SelectionTable,
+                'sortable-table': SortableTable,
+                'filter-table': FilterTable,
+                'slot-table': SlotTable,
+                'expand-table': expandTable,
+                'tree-table': treeTable,
+                'header-slot-table': headerSlotTable,
+                'show-summary-table': ShowSummaryTable,
+                'row-span-table': RowSpanTable,
+                'index-table': IndexTable,
+                'table-container': EleTableContainer,
+                'example': Example
+            }
+        };
+    </script>
+    <script src="modules/docsify@4.js"></script>
+
+</body>
+<style>
+    .el-table .warning-row {
+        background: oldlace;
+    }
+
+    .el-table .success-row {
+        background: #f0f9eb;
+    }
+    .ele-table-container {
+        overflow: hidden;
+    }
+    .ele-table-container .el-pagination {
+        float: right;
+        margin-top: 30px
+    }
+</style>
+
+</html>
