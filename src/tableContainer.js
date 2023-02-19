@@ -8,9 +8,6 @@ export default {
     data() {
         return {
             loading: false,
-            getData: null,
-            tProps: null,
-            pProps: null
         }
     },
     methods: {
@@ -40,20 +37,23 @@ export default {
         }
     },
     mounted() {
-        this.getData = this.$attrs.getData
-        this.tProps = this.$attrs
-        this.pProps = this.$attrs.pageOpt
         this.getAxios()
     },
     computed: {
-        tableData() {
-            return this.$attrs.data
-        }
+        tProps() {
+            return this.$attrs
+        },
+        pProps() {
+            return this.$attrs.pageOpt
+        },
+        getData() {
+            return this.$attrs.getData
+        },
     },
     render(h, context) {
         return (
             <div class='ele-table-container'>
-                <ele-table props={{...this.tProps,'data': this.tableData}} v-loading={this.loading}></ele-table>
+                <ele-table props={this.tProps} v-loading={this.loading}></ele-table>
                 <el-pagination
                     props={this.pProps}
                     on={
@@ -66,4 +66,62 @@ export default {
             </div >
         )
     }
+
+
+
+
+
+    /** functional */
+    // render(h, context) {
+    //     console.log(_loading, '1')
+    //     const pProps = context.props.pageOpt
+    //     const tProps = context.props
+    //     const getData = context.props.getData
+
+    //     if(!created) {
+    //         getAxios()
+    //         created = true
+    //     } 
+
+    //     function getAxios() {
+    //         _loading = true
+    //         setTimeout(() => {
+    //             getData().finally(_loading = false)
+    //         })
+    //     }
+
+    //     function sizeChange(size) {
+    //         pProps.pageSize = size
+    //         console.log('sizeChange')
+    //         // pProps.loading = true
+    //         getAxios()
+
+
+    //     }
+
+    //     function currentChange(page) {
+    //         pProps.currentPage = page
+    //         console.log('currentChange')
+    //         // pProps.loading = true
+    //         getAxios()
+
+    //     }
+
+
+
+    //     return (
+    //         <div class='ele-table-container'>
+    //             <ele-table props={{ ...tProps }} v-loading={_loading}></ele-table>
+    //             <el-pagination
+    //                 props={{ ...pProps }}
+    //                 on={
+    //                     {
+    //                         'size-change': sizeChange,
+    //                         'current-change': currentChange
+    //                     }
+    //                 }
+    //             />
+    //         </div >
+    //     )
+    // },
 }

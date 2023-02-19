@@ -191,10 +191,7 @@ var tableContainer = {
   },
   data: function data() {
     return {
-      loading: false,
-      getData: null,
-      tProps: null,
-      pProps: null
+      loading: false
     };
   },
   methods: {
@@ -224,23 +221,24 @@ var tableContainer = {
     }
   },
   mounted: function mounted() {
-    this.getData = this.$attrs.getData;
-    this.tProps = this.$attrs;
-    this.pProps = this.$attrs.pageOpt;
     this.getAxios();
   },
   computed: {
-    tableData: function tableData() {
-      return this.$attrs.data;
+    tProps: function tProps() {
+      return this.$attrs;
+    },
+    pProps: function pProps() {
+      return this.$attrs.pageOpt;
+    },
+    getData: function getData() {
+      return this.$attrs.getData;
     }
   },
   render: function render(h, context) {
     return h("div", {
       "class": 'ele-table-container'
     }, [h("ele-table", mergeJsxProps([{}, {
-      "props": _objectSpread2(_objectSpread2({}, this.tProps), {}, {
-        'data': this.tableData
-      })
+      "props": this.tProps
     }, {
       "directives": [{
         name: "loading",
@@ -255,6 +253,49 @@ var tableContainer = {
       }
     }]))]);
   }
+  /** functional */
+  // render(h, context) {
+  //     console.log(_loading, '1')
+  //     const pProps = context.props.pageOpt
+  //     const tProps = context.props
+  //     const getData = context.props.getData
+  //     if(!created) {
+  //         getAxios()
+  //         created = true
+  //     } 
+  //     function getAxios() {
+  //         _loading = true
+  //         setTimeout(() => {
+  //             getData().finally(_loading = false)
+  //         })
+  //     }
+  //     function sizeChange(size) {
+  //         pProps.pageSize = size
+  //         console.log('sizeChange')
+  //         // pProps.loading = true
+  //         getAxios()
+  //     }
+  //     function currentChange(page) {
+  //         pProps.currentPage = page
+  //         console.log('currentChange')
+  //         // pProps.loading = true
+  //         getAxios()
+  //     }
+  //     return (
+  //         <div class='ele-table-container'>
+  //             <ele-table props={{ ...tProps }} v-loading={_loading}></ele-table>
+  //             <el-pagination
+  //                 props={{ ...pProps }}
+  //                 on={
+  //                     {
+  //                         'size-change': sizeChange,
+  //                         'current-change': currentChange
+  //                     }
+  //                 }
+  //             />
+  //         </div >
+  //     )
+  // },
 };
 
 export { eleTable as Table, tableContainer as TableContainer };

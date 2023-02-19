@@ -7,7 +7,7 @@ export default {
                 :columns="columns" 
                 :pageOpt="pageOpt" 
                 :getData="getData"
-                max-height='300'
+                height='300'
             />
         </div>
     `,
