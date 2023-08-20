@@ -64,6 +64,31 @@ function _defineProperty(obj, key, value) {
   }
   return obj;
 }
+function _toConsumableArray(arr) {
+  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
+}
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
+}
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
+}
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+  return arr2;
+}
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
 function _toPrimitive(input, hint) {
   if (typeof input !== "object" || input === null) return input;
   var prim = input[Symbol.toPrimitive];
@@ -86,101 +111,327 @@ var eleColumn = {
     eleColumn: eleColumn
   },
   render: function render(h, context) {
+    // console.log(context, 'column')
     var props = context.props;
-    var globalSlots = props.globalSlots;
-    var slotName = props.slotName;
-    /**
-     * 1. <template slot=slotName>
-     *     // slot=header
-     *     // slot=default 
-     *     </template>
-     * 2. <el-button slot=slotName></el-button>
-     */
-    var slot = null;
-    var scopedSlots = {};
-    var slotHeader = [];
-    var slotDefault = [];
-    if (slotName) {
-      var _slot, _slot$children, _slot2, _slot2$data;
-      slot = filterColumnSlots(globalSlots, slotName);
-      (_slot = slot) === null || _slot === void 0 ? void 0 : (_slot$children = _slot.children) === null || _slot$children === void 0 ? void 0 : _slot$children.forEach(function (vnode) {
-        var _vnode$data, _vnode$data2;
-        if (((_vnode$data = vnode.data) === null || _vnode$data === void 0 ? void 0 : _vnode$data.slot) === 'header') slotHeader.push(vnode);else if (((_vnode$data2 = vnode.data) === null || _vnode$data2 === void 0 ? void 0 : _vnode$data2.slot) === 'default') slotDefault.push(vnode);else slotDefault.push(vnode);
-      });
-      scopedSlots = (_slot2 = slot) === null || _slot2 === void 0 ? void 0 : (_slot2$data = _slot2.data) === null || _slot2$data === void 0 ? void 0 : _slot2$data.scopedSlots;
-      // console.log(slotName)
-      // console.log('slot作用域', scopedSlots)
-      // console.log('slot具名', slotHeader, slotDefault)
-      // console.log('=========')
+    var globalSlots = props.globalSlots || null;
+    function defaultRender(h, props) {
+      return props.render ? {
+        "default": function _default(prop) {
+          return props.render(h, prop);
+        }
+      } : {};
     }
-
     return h("el-table-column", mergeJsxProps([{}, {
       "props": props
     }, {
-      "scopedSlots": scopedSlots
-    }]), [
-    // column 嵌套 slot=default 不可用
-    props.children ? props.children.map(function (col) {
+      "scopedSlots": defaultRender(h, props)
+    }]), [props.children ? props.children.map(function (col) {
       return h(eleColumn, mergeJsxProps([{}, {
         "props": _objectSpread2(_objectSpread2({}, col), {}, {
           globalSlots: globalSlots
         })
       }]));
-    }) : columnContext(h, slotHeader, slotDefault)
-
-    // 
-    ]);
+    }) : null]);
   }
 };
 
-function filterColumnSlots(globalSlots, slotName) {
-  return globalSlots.filter(function (vnode) {
-    var _vnode$data3;
-    if (((_vnode$data3 = vnode.data) === null || _vnode$data3 === void 0 ? void 0 : _vnode$data3.slot) === slotName) return true;
-  })[0];
-}
-function columnContext(h, slotHeader, slotDefault) {
-  var vnodeArr = [];
-  if (slotHeader && slotHeader.length) {
-    vnodeArr.push(h('template', {
-      slot: 'header'
-    }, slotHeader));
+function toggleRowStatus(statusArr, row, newVal) {
+  var changed = false;
+  var index = statusArr.indexOf(row);
+  var included = index !== -1;
+  var addRow = function addRow() {
+    statusArr.push(row);
+    changed = true;
+  };
+  var removeRow = function removeRow() {
+    statusArr.splice(index, 1);
+    changed = true;
+  };
+  if (typeof newVal === 'boolean') {
+    if (newVal && !included) {
+      addRow();
+    } else if (!newVal && included) {
+      console.log('removeRow', index);
+      removeRow();
+    }
+  } else {
+    if (included) {
+      removeRow();
+    } else {
+      addRow();
+    }
   }
-  if (slotDefault && slotDefault.length) {
-    vnodeArr.push(h('template', {
-      slot: 'default'
-    }, slotDefault));
-  }
-  return vnodeArr;
+  return changed;
 }
+var getKeysMap = function getKeysMap(array, rowKey) {
+  var arrayMap = {};
+  (array || []).forEach(function (row, index) {
+    arrayMap[getRowIdentity(row, rowKey)] = {
+      row: row,
+      index: index
+    };
+  });
+  return arrayMap;
+};
+var getRowIdentity = function getRowIdentity(row, rowKey) {
+  if (!row) throw new Error('row is required when get row identity');
+  if (typeof rowKey === 'string') {
+    if (rowKey.indexOf('.') < 0) {
+      return row[rowKey];
+    }
+    var key = rowKey.split('.');
+    var current = row;
+    for (var i = 0; i < key.length; i++) {
+      current = current[key[i]];
+    }
+    return current;
+  } else if (typeof rowKey === 'function') {
+    return rowKey.call(null, row);
+  }
+};
 
 var eleTable = {
   name: 'eleTable',
-  functional: true,
   components: {
     eleColumn: eleColumn
   },
-  render: function render(h, context) {
-    var data = context.data;
-    var props = context.props;
-    data.attrs = {};
-    var columns = context.props.columns || [];
-    var globalSlots = context.children || [];
-    var slotAppend = globalSlots.filter(function (vnode) {
-      var _vnode$data;
-      return (vnode === null || vnode === void 0 ? void 0 : (_vnode$data = vnode.data) === null || _vnode$data === void 0 ? void 0 : _vnode$data.slot) === 'append';
-    })[0];
-    return h("el-table", mergeJsxProps([{}, _objectSpread2({
-      props: props
-    }, data)]), [columns.map(function (col) {
+  data: function data() {
+    return {
+      item: [],
+      tableRef: null,
+      warpperRef: null,
+      // 
+      elWarp: null,
+      elItems: null,
+      // 
+      elWarpHeight: null,
+      itemHeight: 48,
+      itemHeightArr: [],
+      // 
+      vCount: 8,
+      bufferCount: 2,
+      startIdx: 0,
+      // top
+      selections: [],
+      btn: true
+    };
+  },
+  props: {
+    data: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    },
+    columns: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    }
+  },
+  watch: {
+    data: function data(val) {
+      this.elWarp.style.height = this.elItems * val.length + 'px';
+    }
+  },
+  computed: {
+    vData: function vData() {
+      var start = this.startIdx - this.bufferIdx;
+      var end = this.startIdx + this.vCount;
+      return this.data.slice(start, end);
+    },
+    vColumns: function vColumns() {
+      return this.columns.map(function (val) {
+        if (val.type === 'selection') return _objectSpread2(_objectSpread2({}, val), {}, {
+          renderHeader: function renderHeader(h, props) {
+            return h('el-button', '1ds');
+          }
+        });
+      });
+    },
+    bufferIdx: function bufferIdx() {
+      return this.startIdx > this.bufferCount ? this.bufferCount : 0;
+    },
+    globalHeight: function globalHeight() {
+      return this.data.length * this.itemHeight;
+    },
+    isAllSelected: function isAllSelected() {
+      var _this = this;
+      setTimeout(function () {
+        var state = _this.data.length === _this.selections.length ? true : false;
+        console.log(state, 'isAllSelected');
+        return state;
+      });
+      // const state = this.data.length === this.selections.length ? true : false
+      // console.log(state, 'isAllSelected')
+      // return state
+    }
+  },
+  mounted: function mounted() {
+    this.initProxy();
+    console.log('mounted');
+  },
+  updated: function updated() {
+    console.log('updated');
+  },
+  methods: {
+    initProxy: function initProxy() {
+      var that = this;
+      // 全选
+      function _toggleAllSelection() {
+        var states = this.states;
+        states.data;
+          var selection = states.selection;
+        // when only some rows are selected (but not all), select or deselect all of them
+        // depending on the value of selectOnIndeterminate
+        var value = states.selectOnIndeterminate ? !states.isAllSelected : !(states.isAllSelected || selection.length);
+        states.isAllSelected = value;
+        var selectionChanged = false;
+        that.data.forEach(function (row, index) {
+          if (states.selectable) {
+            if (states.selectable.call(null, row, index) && toggleRowStatus(selection, row, value)) {
+              selectionChanged = true;
+            }
+          } else {
+            if (toggleRowStatus(selection, row, value)) {
+              selectionChanged = true;
+            }
+          }
+        });
+        if (selectionChanged) {
+          this.table.$emit('selection-change', selection ? selection.slice() : []);
+        }
+        this.table.$emit('select-all', selection);
+      }
+      // 全选状态
+      function updateAllSelected() {
+        var states = this.states;
+        var selection = states.selection,
+          rowKey = states.rowKey,
+          selectable = states.selectable;
+        // data 为 null 时，解构时的默认值会被忽略
+        var data = that.data || [];
+        if (data.length === 0) {
+          states.isAllSelected = false;
+          return;
+        }
+        var selectedMap;
+        if (rowKey) {
+          selectedMap = getKeysMap(selection, rowKey);
+        }
+        var isSelected = function isSelected(row) {
+          if (selectedMap) {
+            return !!selectedMap[getRowIdentity(row, rowKey)];
+          } else {
+            return selection.indexOf(row) !== -1;
+          }
+        };
+        var isAllSelected = true;
+        var selectedCount = 0;
+        for (var i = 0, j = data.length; i < j; i++) {
+          var item = data[i];
+          var isRowSelectable = selectable && selectable.call(null, item, i);
+          if (!isSelected(item)) {
+            if (!selectable || isRowSelectable) {
+              isAllSelected = false;
+              break;
+            }
+          } else {
+            selectedCount++;
+          }
+        }
+        if (selectedCount === 0) isAllSelected = false;
+        states.isAllSelected = isAllSelected;
+      }
+      // wrappedRowRender
+      var _orgWrappedRowRender = this.warpperRef.wrappedRowRender;
+      this.warpperRef.wrappedRowRender = function (row, index) {
+        return _orgWrappedRowRender(row, that.startIdx + index - that.bufferIdx);
+      };
+      this.tableRef.store.toggleAllSelection = _toggleAllSelection;
+      this.tableRef.store.updateAllSelected = updateAllSelected;
+    },
+    refCallBack: function refCallBack(el) {
+      var _this2 = this;
+      if (this.tableRef) return;
+      this.tableRef = el;
+      this.tableRef.$children.forEach(function (vnode) {
+        var option = vnode.$options;
+        if (option.name === "ElTableBody") _this2.warpperRef = vnode;
+      });
+      this.tbody = this.warpperRef.$el.querySelectorAll('tbody');
+      this.appendWarp();
+      this.$nextTick(function () {
+        _this2.bufferItemArr();
+      });
+    },
+    bufferItemArr: function bufferItemArr() {
+      var _this3 = this;
+      var trNodes = _toConsumableArray(this.elWarp.querySelectorAll('tr'));
+      trNodes.forEach(function (node, index) {
+        _this3.itemHeightArr[_this3.startIdx + index] = node.offsetHeight;
+      });
+      console.log(this.itemHeightArr, 'startIdx');
+      this.itemHeight = this.itemHeightArr[this.startIdx];
+    },
+    appendWarp: function appendWarp() {
+      var _this4 = this;
+      var elTable = this.tableRef.$el;
+      // 
+      this.elWarp = document.createElement('div');
+      this.elWarp.className = 'ele-vertual-warp';
+      this.elWarp.style.height = this.globalHeight + 'px';
+      // 
+      this.elItems = document.createElement('div');
+      this.elItems.className = 'ele-vertual-warpItems';
+      var elWarpper = elTable.querySelector('.el-table__body-wrapper');
+      var elWarpperTable = elWarpper.querySelector('table');
+      setTimeout(function () {
+        // this.elWarpHeight = elWarpper.clientHeight
+
+        _this4.itemHeight = elWarpper.querySelector('tr').offsetHeight;
+        console.log(elWarpper.querySelector('tr').offsetHeight, 'clientHeight', elWarpperTable.clientHeight / 13);
+      });
+      elWarpper.insertBefore(this.elWarp, elWarpperTable);
+      this.elItems.appendChild(elWarpperTable);
+      this.elWarp.appendChild(this.elItems);
+      // scroll-event
+      elWarpper.addEventListener('scroll', this.eventScroll.bind(this));
+    },
+    eventScroll: function eventScroll(ev) {
+      var top = ev.target.scrollTop;
+      this.startIdx = Math.floor(top / this.itemHeight);
+      // 
+      var bufferTop = this.bufferIdx * this.itemHeight;
+      var topTo = top - top % this.itemHeight - bufferTop;
+      this.elWarp.style.height = this.globalHeight - topTo + 'px';
+      this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
+      this.bufferItemArr();
+    }
+  },
+  render: function render(h) {
+    var _this5 = this;
+    this.$attrs;
+    return h("el-table", mergeJsxProps([{
+      "attrs": {
+        "data": this.vData
+      }
+    }, {
+      "attrs": this.$attrs
+    }, {
+      "ref": this.refCallBack
+    }, {
+      "on": this.$listeners
+    }]), [this.columns.map(function (col) {
       return h(eleColumn, mergeJsxProps([{}, {
         "props": _objectSpread2(_objectSpread2({}, col), {}, {
-          globalSlots: globalSlots
+          globalSlots: _this5.$slots
         })
       }]));
-    }), slotAppend ? h("template", {
+    }), h("template", {
       "slot": 'append'
-    }, [slotAppend]) : null]);
+    }, [this.$slots['append']])]);
   }
 };
 

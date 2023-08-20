@@ -8,7 +8,6 @@
     <title>Document</title>
     <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
     <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
-
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
@@ -22,26 +21,82 @@
 <script type="text/x-template" id="template">
     <div>
         <!-- el-table -->
-        <el-table :data="tdata" row-key="id" >
+        <el-table :data="adata" 
+            @select-all="selectAll"
+            @selection-change="selectionChange"
+            @row-click='rowClick'
+            @select='select'
+            height='500' 
+            :span-method="arraySpanMethod" 
+            :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+        >
+            <el-table-column type='selection' width='200' :reserveSelection="true">
+                <el-button slot='header'>header</el-button>
+            </el-table-column>
+            <el-table-column type='index'>
+            </el-table-column>
             <el-table-column label="首行">
-                <input v-model="number" />
+                <el-button slot='header'>header</el-button>
+                <input v-model="number"  />
             </el-table-column>
             <el-table-column label="基础数据" prop="date" sortable>
-                <el-button slot='header'>header</el-button>
-                <el-button>context</el-button>
+                <template  v-slot:header='scope' slot-scope='scope' >{{scope.$index}}</template>
+                <template  v-slot:default='scope' slot-scope='scope' >{{scope.$index}}</template>
                 <el-table-column label="日期" prop="date" sortable></el-table-column>
                 <el-table-column label="姓名" prop="name"></el-table-column>
                 <el-table-column label="地址" prop="address"></el-table-column>
             </el-table-column>
             <el-table-column label="操作">
-
             </el-table-column>
+            <template v-slot:append>append</template>
         </el-table>
 
         <!-- table -->
-        <ele-table class='ele-table' ref='table' :data="tdata" :columns="columns" row-key="id" style="background: red">
+        <ele-table class='ele-table' ref='table' 
+            :data="tdata" 
+            :columns="columns" 
+            :row-key="getRowKey" 
+            height='500'
+            @select-all="selectAll"
+            @selection-change="selectionChange"
+            @row-click='rowClick'
+            @select='select'
+            :span-method="arraySpanMethod" 
+            >
+            <template slot='append'>
+                <el-button >123123</el-button>
+            </template>
         </ele-table>
-
+        <el-button @click="onClick">toggleAllSelection</el-button>
+        <!--  -->
+        <el-table :data="adata" 
+            @select-all="selectAll"
+            @selection-change="selectionChange"
+            @row-click='rowClick'
+            @select='select'
+            height='500' 
+            :span-method="arraySpanMethod" 
+     >
+            <el-table-column type='selection' width='200' :reserveSelection="true">
+                <el-button slot='header'>header</el-button>
+            </el-table-column>
+            <el-table-column type='index'>
+            </el-table-column>
+            <el-table-column label="首行">
+                <el-button slot='header'>header</el-button>
+                <input v-model="number"  />
+            </el-table-column>
+            <el-table-column label="基础数据" prop="date" sortable>
+                <template  v-slot:header='scope' slot-scope='scope' >{{scope.$index}}</template>
+                <template  v-slot:default='scope' slot-scope='scope' >{{scope.$index}}</template>
+                <el-table-column label="日期" prop="date" sortable></el-table-column>
+                <el-table-column label="姓名" prop="name"></el-table-column>
+                <el-table-column label="地址" prop="address"></el-table-column>
+            </el-table-column>
+            <el-table-column label="操作">
+            </el-table-column>
+            <template v-slot:append>append</template>
+        </el-table>
     </div>
 
 
@@ -50,8 +105,6 @@
 <script type="module">
     import { Table, TableContainer } from '../lib/ele-table.js'
 
-    console.log(Table, TableContainer)
-    // console.log(ElementUI)
     new Vue({
         el: '#app',
         components: {
@@ -62,83 +115,144 @@
         data: {
             pageOpt: {
                 background: true,
-                layout:"prev, pager, next",
+                layout: "prev, pager, next",
                 total: 100
             },
             number: '',
             columns: [
-            {
-                label: '基础数据',
-                // slotName: 'baise',
-                children: [{
-                    prop: 'date',
-                    label: '日期',
-                    width: '100',
-                    slotName: 'date'
-                }, {
-                    prop: 'name',
-                    label: '姓名',
-                    width: '100',
-                    sortable: true
-                }]
-            }, {
-                prop: 'address',
-                label: '地址',
-                width: '300'
-            },
-            {
-                label: '操作',
-                slotName: 'edit',
-                width: '300',
-                fixed: 'right'
-            }],
-            tdata: [{
-                id: 1,
-                // date: '2016-05-02',
-                name: '王小虎',
-                address: '上海市普陀区金沙江路 1518 弄',
-                children: [
-                    {
-                        id: 18,
-                        // date: '2016-05-04',
-                        name: '小虎',
-                        address: '上海市普陀区金沙江路 1517 弄',
+                {
+                    type: 'selection',
+                    label: '序号',
+                    reserveSelection: "true",
+                    // renderHeader: (h, props) => {
+                    //     return h('el-button', '1ds')
+                    // },
+                },
+                {
+                    type: 'index',
+                    label: '序号',
+                },
+                {
+                    label: '基础数据',
+                    slotName: 'baise',
+                    renderHeader: (h, props) => {
+                        return h('el-button', '1ds')
+                    },
+                    children: [{
+                        prop: 'date',
+                        label: '日期',
+                        width: '200',
+                        render: (h, props) => {
+                            return h('el-button', props.row.date)
+                        },
                     }, {
-                        id: 12,
+                        prop: 'name',
+                        label: '姓名',
+                        width: '100',
+                        sortable: true,
+                        type: 'expand',
+                        render(h,props) {
+                            return h('div','div')
+                        }
+                    }]
+                }, {
+                    prop: 'address',
+                    label: '地址',
+                },
+                {
+                    label: '操作',
+                    renderHeader: (h, props) => {
+                        return h('el-button', 123123)
+                    },
+                    width: '300',
+
+                }],
+            adata: Array.from(new Array(300)).map((val, index) => {
+                return {
+                    id: index,
+                    date: '2016-05-03',
+                    name: '王小虎',
+                    address: `上海市普陀区金沙江路 ${index} 弄`,
+                    city: '普陀区',
+                    zip: 200333,
+                    children: [{
+                        id: 31,
                         date: '2016-05-01',
-                        name: '小虎',
-                        address: '上海市普陀区金沙江路 1519 弄',
-                        city: '普陀区',
-                        zip: 200333,
-                        cloue: '123123123123'
-                    }
-                ]
-            }, {
-                id: 8,
-                // date: '2016-05-04',
-                name: '王小虎',
-                address: '上海市普陀区金沙江路 1517 弄',
-            }, {
-                id: 2,
-                // date: '2016-05-01',
-                name: '王小虎',
-                address: '上海市普陀区金沙江路 1519 弄',
-                city: '普陀区',
-                zip: 200333,
-                cloue: '123123123123'
-            }, {
-                id: 3,
-                date: '2016-05-03',
-                name: '王小虎',
-                address: '上海市普陀区金沙江路 1516 弄',
-                city: '普陀区',
-                zip: 200333
-            }]
+                        name: '王小虎',
+                        address: '上海市普陀区金沙江路 1519 弄'
+                    }, {
+                        id: 32,
+                        date: '2016-05-01',
+                        name: '王小虎',
+                        address: '上海市普陀区金沙江路 1519 弄'
+                    }]
+                }
+            }),
+            tdata: Array.from(new Array(300)).map((val, index) => {
+                return {
+                    id: index,
+                    date: '2016-05-03',
+                    name: '王小虎',
+                    address: `上海市普陀区金沙江路 ${index} 弄`,
+                    city: '普陀区',
+                    zip: Math.floor(Math.random() * 5)
+                }
+            })
+
         },
 
         watch: {
             number(newVal) {
                 console.log(newVal, 'newVal', this.number)
+            }
+        },
+        methods: {
+            arraySpanMethod({ row, column, rowIndex, columnIndex }) {
+                if (columnIndex === 0) {
+                    if (rowIndex % 2) {
+                        return [2, 1]
+                    } else {
+                        return [0, 0]
+                    }
+
+                }
+            },
+            getRowKey(row) {
+                return row.id + ''
+            },
+            selectAll(selection) {
+
+
+                // 切换为全选
+                // if(dataLen > selectionLen) 
+                // 全不选
+                // else 
+
+
+                console.log(selection, '##selectAll##')
+            },
+            selectionChange(selection) {
+                console.log(selection, '##selectionChange##')
+            },
+            onClick() {
+                console.log(this.$refs.table.$children[0])
+                this.tdata.forEach(row => {
+                    this.$refs.table.$children[0].toggleRowSelection(row, true)
+                })
+                // const table = 
+            },
+            rowClick(row, column, event) {
+                const selection = this.$refs.table.$children[0].store.states.selection
+                selection.forEach(val => {
+                    if (val === row) console.log('true')
+                })
+                console.log(row, 'rowClick', this.$refs.table.$children[0].store.states.selection)
+            },
+            select(selection, row) {
+                console.log('select', selection, row)
+                selection.forEach(val => {
+                    if (val === row) console.log('select-true')
+                })
             }
         }
     })
