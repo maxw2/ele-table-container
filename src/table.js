@@ -18,8 +18,9 @@ export default {
             itemHeight: 48,
             itemHeightArr: [],
             // 
-            vCount: 8,
-            bufferCount: 2,
+            vCount: 7,
+            bufferCount: 5,
+            bufferHeight: 0,
             startIdx: 0,
             // top
             selections: [],
@@ -47,9 +48,9 @@ export default {
     },
     computed: {
         vData() {
-            const start = this.startIdx - this.bufferIdx
-            const end = this.startIdx + this.vCount
-
+            const start = this.bufferIdx 
+            const end = this.startIdx + this.vCount + this.bufferCount
+            
             return this.data.slice(start, end)
         },
         vColumns() {
@@ -63,7 +64,7 @@ export default {
             })
         },
         bufferIdx() {
-            return this.startIdx > this.bufferCount ? this.bufferCount : 0
+            return this.startIdx - this.bufferCount > 0 ?  this.startIdx - this.bufferCount : 0
         },
         globalHeight() {
             return this.data.length * this.itemHeight
@@ -161,7 +162,7 @@ export default {
             // wrappedRowRender
             const _orgWrappedRowRender = this.warpperRef.wrappedRowRender
             this.warpperRef.wrappedRowRender = function (row, index) {
-                return _orgWrappedRowRender(row, that.startIdx + index - that.bufferIdx)
+                return _orgWrappedRowRender(row, index + that.bufferIdx)
             }
 
             this.tableRef.store.toggleAllSelection = _toggleAllSelection
@@ -182,12 +183,14 @@ export default {
             })
         },
         bufferItemArr() {
-            const trNodes = [...this.elWarp.querySelectorAll('tr')]
-            trNodes.forEach((node,index) => {
-                this.itemHeightArr[this.startIdx + index] = node.offsetHeight
+            // const trNodes = [...this.elWarp.querySelectorAll('tr')]
+            // this.itemHeightArr = trNodes.map((node,index) => {
+            //     return node.offsetHeight
+            // })
+            [...this.elWarp.querySelectorAll('tr')].forEach((node,index) => {
+                if(this.bufferIdx) this.itemHeight
             })
-            console.log(this.itemHeightArr, 'startIdx')
-            this.itemHeight = this.itemHeightArr[this.startIdx]
+
         },
         appendWarp() {
             const elTable = this.tableRef.$el
@@ -220,10 +223,13 @@ export default {
             const top = ev.target.scrollTop
 
             this.startIdx = Math.floor(top / this.itemHeight)
-            // 
-            const bufferTop = this.bufferIdx * this.itemHeight
-            const topTo = (top - top % this.itemHeight) - bufferTop
 
+             const bufferTop =  (this.startIdx - this.bufferIdx) * this.itemHeight
+            
+            // const bufferTop = this.bufferHeight
+            const topTo = (top - top % this.itemHeight) - bufferTop
+            console.log(bufferTop, 'buffTop',top)
+            console.log(top % this.itemHeight)
             this.elWarp.style.height = this.globalHeight - topTo + 'px'
             this.elWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
 

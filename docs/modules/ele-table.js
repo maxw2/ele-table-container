@@ -208,8 +208,9 @@ var eleTable = {
       itemHeight: 48,
       itemHeightArr: [],
       // 
-      vCount: 8,
-      bufferCount: 2,
+      vCount: 7,
+      bufferCount: 5,
+      bufferHeight: 0,
       startIdx: 0,
       // top
       selections: [],
@@ -237,8 +238,8 @@ var eleTable = {
   },
   computed: {
     vData: function vData() {
-      var start = this.startIdx - this.bufferIdx;
-      var end = this.startIdx + this.vCount;
+      var start = this.bufferIdx;
+      var end = this.startIdx + this.vCount + this.bufferCount;
       return this.data.slice(start, end);
     },
     vColumns: function vColumns() {
@@ -251,7 +252,7 @@ var eleTable = {
       });
     },
     bufferIdx: function bufferIdx() {
-      return this.startIdx > this.bufferCount ? this.bufferCount : 0;
+      return this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
     },
     globalHeight: function globalHeight() {
       return this.data.length * this.itemHeight;
@@ -347,7 +348,7 @@ var eleTable = {
       // wrappedRowRender
       var _orgWrappedRowRender = this.warpperRef.wrappedRowRender;
       this.warpperRef.wrappedRowRender = function (row, index) {
-        return _orgWrappedRowRender(row, that.startIdx + index - that.bufferIdx);
+        return _orgWrappedRowRender(row, index + that.bufferIdx);
       };
       this.tableRef.store.toggleAllSelection = _toggleAllSelection;
       this.tableRef.store.updateAllSelected = updateAllSelected;
@@ -368,12 +369,13 @@ var eleTable = {
     },
     bufferItemArr: function bufferItemArr() {
       var _this3 = this;
-      var trNodes = _toConsumableArray(this.elWarp.querySelectorAll('tr'));
-      trNodes.forEach(function (node, index) {
-        _this3.itemHeightArr[_this3.startIdx + index] = node.offsetHeight;
+      // const trNodes = [...this.elWarp.querySelectorAll('tr')]
+      // this.itemHeightArr = trNodes.map((node,index) => {
+      //     return node.offsetHeight
+      // })
+      _toConsumableArray(this.elWarp.querySelectorAll('tr')).forEach(function (node, index) {
+        if (_this3.bufferIdx) _this3.itemHeight;
       });
-      console.log(this.itemHeightArr, 'startIdx');
-      this.itemHeight = this.itemHeightArr[this.startIdx];
     },
     appendWarp: function appendWarp() {
       var _this4 = this;
@@ -402,9 +404,12 @@ var eleTable = {
     eventScroll: function eventScroll(ev) {
       var top = ev.target.scrollTop;
       this.startIdx = Math.floor(top / this.itemHeight);
-      // 
-      var bufferTop = this.bufferIdx * this.itemHeight;
+      var bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight;
+
+      // const bufferTop = this.bufferHeight
       var topTo = top - top % this.itemHeight - bufferTop;
+      console.log(bufferTop, 'buffTop', top);
+      console.log(top % this.itemHeight);
       this.elWarp.style.height = this.globalHeight - topTo + 'px';
       this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
       this.bufferItemArr();
