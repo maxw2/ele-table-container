@@ -1,10 +1,11 @@
 import eleColumn from './column'
-import { toggleRowStatus, getKeysMap, getRowIdentity } from './originElement'
+import selection from './selection'
 
 
 export default {
     name: 'eleTable',
     components: { eleColumn },
+    mixins: [selection],
     data() {
         return {
             item: [],
@@ -19,7 +20,7 @@ export default {
             itemHeightArr: [],
             // 
             vCount: 7,
-            bufferCount: 5,
+            bufferCount: 2,
             bufferHeight: 0,
             startIdx: 0,
             // top
@@ -48,37 +49,17 @@ export default {
     },
     computed: {
         vData() {
-            const start = this.bufferIdx 
+            const start = this.bufferIdx
             const end = this.startIdx + this.vCount + this.bufferCount
-            
+
             return this.data.slice(start, end)
         },
-        vColumns() {
-            return this.columns.map(val => {
-                if (val.type === 'selection') return {
-                    ...val,
-                    renderHeader: (h, props) => {
-                        return h('el-button', '1ds')
-                    }
-                }
-            })
-        },
         bufferIdx() {
-            return this.startIdx - this.bufferCount > 0 ?  this.startIdx - this.bufferCount : 0
+            return this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0
         },
         globalHeight() {
             return this.data.length * this.itemHeight
         },
-        isAllSelected() {
-            setTimeout(() => {
-                const state = this.data.length === this.selections.length ? true : false
-                console.log(state, 'isAllSelected')
-                return state
-            })
-            // const state = this.data.length === this.selections.length ? true : false
-            // console.log(state, 'isAllSelected')
-            // return state
-        }
     },
     mounted() {
         this.initProxy()
@@ -89,84 +70,14 @@ export default {
     },
     methods: {
         initProxy() {
-            const that = this
-            // 全选
-            function _toggleAllSelection() {
-                const states = this.states;
-                const { data = [], selection } = states;
-                // when only some rows are selected (but not all), select or deselect all of them
-                // depending on the value of selectOnIndeterminate
-                const value = states.selectOnIndeterminate
-                    ? !states.isAllSelected
-                    : !(states.isAllSelected || selection.length);
-                states.isAllSelected = value;
-
-                let selectionChanged = false;
-                that.data.forEach((row, index) => {
-                    if (states.selectable) {
-                        if (states.selectable.call(null, row, index) && toggleRowStatus(selection, row, value)) {
-                            selectionChanged = true;
-                        }
-                    } else {
-                        if (toggleRowStatus(selection, row, value)) {
-                            selectionChanged = true;
-                        }
-                    }
-                });
-
-                if (selectionChanged) {
-                    this.table.$emit('selection-change', selection ? selection.slice() : []);
-                }
-                this.table.$emit('select-all', selection);
-            }
-            // 全选状态
-            function updateAllSelected() {
-                const states = this.states;
-                const { selection, rowKey, selectable } = states;
-                // data 为 null 时，解构时的默认值会被忽略
-                const data = that.data || [];
-                if (data.length === 0) {
-                    states.isAllSelected = false;
-                    return;
-                }
-
-                let selectedMap;
-                if (rowKey) {
-                    selectedMap = getKeysMap(selection, rowKey);
-                }
-                const isSelected = function (row) {
-                    if (selectedMap) {
-                        return !!selectedMap[getRowIdentity(row, rowKey)];
-                    } else {
-                        return selection.indexOf(row) !== -1;
-                    }
-                };
-                let isAllSelected = true;
-                let selectedCount = 0;
-                for (let i = 0, j = data.length; i < j; i++) {
-                    const item = data[i];
-                    const isRowSelectable = selectable && selectable.call(null, item, i);
-                    if (!isSelected(item)) {
-                        if (!selectable || isRowSelectable) {
-                            isAllSelected = false;
-                            break;
-                        }
-                    } else {
-                        selectedCount++;
-                    }
-                }
-
-                if (selectedCount === 0) isAllSelected = false;
-                states.isAllSelected = isAllSelected;
-            }
             // wrappedRowRender
+            const that = this
             const _orgWrappedRowRender = this.warpperRef.wrappedRowRender
             this.warpperRef.wrappedRowRender = function (row, index) {
                 return _orgWrappedRowRender(row, index + that.bufferIdx)
             }
 
-            this.tableRef.store.toggleAllSelection = _toggleAllSelection
-            this.tableRef.store.updateAllSelected = updateAllSelected
+
         },
         refCallBack(el) {
             if (this.tableRef) return
@@ -177,18 +88,17 @@ export default {
             })
             this.tbody = this.warpperRef.$el.querySelectorAll('tbody')
 
-            this.appendWarp()
-            this.$nextTick(()=>{
-                this.bufferItemArr()
-            })
+            this.$nextTick(() => this.appendWarp())
+
+
         },
         bufferItemArr() {
             // const trNodes = [...this.elWarp.querySelectorAll('tr')]
             // this.itemHeightArr = trNodes.map((node,index) => {
             //     return node.offsetHeight
             // })
-            [...this.elWarp.querySelectorAll('tr')].forEach((node,index) => {
-                if(this.bufferIdx) this.itemHeight
+            [...this.elWarp.querySelectorAll('tr')].forEach((node, index) => {
+                if (this.bufferIdx) this.itemHeight
             })
 
         },
@@ -205,16 +115,65 @@ export default {
             const elWarpper = elTable.querySelector('.el-table__body-wrapper')
             const elWarpperTable = elWarpper.querySelector('table')
 
+            elWarpper.insertBefore(this.elWarp, elWarpperTable)
+            this.elItems.appendChild(elWarpperTable)
+            this.elWarp.appendChild(this.elItems)
+
+            // left
+            const elLeftWarpper = elTable.querySelector('.el-table__fixed .el-table__fixed-body-wrapper')
+            if (elLeftWarpper) {
+                this.leftWarp = document.createElement('div')
+                this.leftWarp.className = 'ele-vertual-warp-right'
+                this.leftWarp.style.height = this.globalHeight + 'px'
+                const elLeftWarrperTable = elLeftWarpper.querySelector('table')
+                console.log(elLeftWarpper)
+                elLeftWarpper.insertBefore(this.leftWarp, elLeftWarrperTable)
+                this.leftWarp.appendChild(elLeftWarrperTable)
+            }
+
+            // right
+            const elRightWarpper = elTable.querySelector('.el-table__fixed-right .el-table__fixed-body-wrapper')
+            if (elRightWarpper) {
+                this.rightWarp = document.createElement('div')
+                this.rightWarp.className = 'ele-vertual-warp-right'
+                this.rightWarp.style.height = this.globalHeight + 'px'
+                const elRightWarrperTable = elRightWarpper.querySelector('table')
+                console.log(elRightWarpper)
+                elRightWarpper.insertBefore(this.rightWarp, elRightWarrperTable)
+                this.rightWarp.appendChild(elRightWarrperTable)
+            }
+
+
+
+
             setTimeout(() => {
-                // this.elWarpHeight = elWarpper.clientHeight
+                // const that = this
+                // let oldStartIdx = this.startIdx
+                // let oldStartHeight = this.itemHeight
+                // const obsver = new MutationObserver(function (mutationList, observer) {
+                //     const idx = that.startIdx - that.bufferIdx
+                //     const rect = elWarpper.querySelectorAll('tr')[idx].getBoundingClientRect()
+                //     that.itemHeight = rect.height
+
+                //     if (oldStartIdx < that.startIdx) {
+                //         that.bufferHeight += rect.height
+
+                //     } else that.bufferHeight -= oldStartHeight
+
+                //     console.log('that.bufferHeight', that.bufferHeight, 'height', idx)
+                //     oldStartHeight = rect.height
+                //     oldStartIdx = that.startIdx
+
+
+                //     console.log(mutationList, observer, 'callback', rect)
+                // })
+                // obsver.observe(elWarpper, { subtree: true, childList: true })
 
                 this.itemHeight = elWarpper.querySelector('tr').offsetHeight
                 console.log(elWarpper.querySelector('tr').offsetHeight, 'clientHeight', elWarpperTable.clientHeight / 13)
             })
 
-            elWarpper.insertBefore(this.elWarp, elWarpperTable)
-            this.elItems.appendChild(elWarpperTable)
-            this.elWarp.appendChild(this.elItems)
+
             // scroll-event
             elWarpper.addEventListener('scroll', this.eventScroll.bind(this))
 
@@ -224,16 +183,28 @@ export default {
 
             this.startIdx = Math.floor(top / this.itemHeight)
 
-             const bufferTop =  (this.startIdx - this.bufferIdx) * this.itemHeight
-            
+            const bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight
             // const bufferTop = this.bufferHeight
+
             const topTo = (top - top % this.itemHeight) - bufferTop
-            console.log(bufferTop, 'buffTop',top)
-            console.log(top % this.itemHeight)
+            // console.log(bufferTop, 'buffTop',top)
+            // console.log(top % this.itemHeight)
             this.elWarp.style.height = this.globalHeight - topTo + 'px'
             this.elWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
 
-            this.bufferItemArr()
+            // left
+            if (this.leftWarp) {
+                this.leftWarp.style.height = this.globalHeight - topTo + 'px'
+                this.leftWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
+            }
+            // right
+            if (this.rightWarp) {
+                this.rightWarp.style.height = this.globalHeight - topTo + 'px'
+                this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
+            }
+
+
+            // this.bufferItemArr()
         }
     },
     render(h) {

@@ -21,89 +21,31 @@
 <script type="text/x-template" id="template">
     <div>
         <!-- el-table -->
-        <el-table :data="adata" 
-            @select-all="selectAll"
-            @selection-change="selectionChange"
-            @row-click='rowClick'
-            @select='select'
-            height='500' 
-            :span-method="arraySpanMethod" 
-            :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
-        >
-            <el-table-column type='selection' width='200' :reserveSelection="true">
-                <el-button slot='header'>header</el-button>
-            </el-table-column>
-            <el-table-column type='index'>
-            </el-table-column>
-            <el-table-column label="首行">
-                <el-button slot='header'>header</el-button>
-                <input v-model="number"  />
-            </el-table-column>
-            <el-table-column label="基础数据" prop="date" sortable>
-                <template  v-slot:header='scope' slot-scope='scope' >{{scope.$index}}</template>
-                <template  v-slot:default='scope' slot-scope='scope' >{{scope.$index}}</template>
-                <el-table-column label="日期" prop="date" sortable></el-table-column>
-                <el-table-column label="姓名" prop="name"></el-table-column>
-                <el-table-column label="地址" prop="address"></el-table-column>
-            </el-table-column>
-            <el-table-column label="操作">
-            </el-table-column>
-            <template v-slot:append>append</template>
-        </el-table>
+
 
         <!-- table -->
-        <ele-table class='ele-table' ref='table' 
+        <ele-table class='ele-table' ref='table' height='500'
             :data="tdata" 
             :columns="columns" 
-            :row-key="getRowKey" 
-            height='500'
+            :row-key="getRowKey"
+            :default-expand-all="false"
             @select-all="selectAll"
             @selection-change="selectionChange"
             @row-click='rowClick'
             @select='select'
-       
             >
             <template slot='append'>
                 <el-button >123123</el-button>
             </template>
         </ele-table>
         <el-button @click="onClick">toggleAllSelection</el-button>
-        <!--  -->
-        <el-table :data="adata" 
-            @select-all="selectAll"
-            @selection-change="selectionChange"
-            @row-click='rowClick'
-            @select='select'
-            height='500' 
-            :span-method="arraySpanMethod" 
-     >
-            <el-table-column type='selection' width='200' :reserveSelection="true">
-                <el-button slot='header'>header</el-button>
-            </el-table-column>
-            <el-table-column type='index'>
-            </el-table-column>
-            <el-table-column label="首行">
-                <el-button slot='header'>header</el-button>
-                <input v-model="number"  />
-            </el-table-column>
-            <el-table-column label="基础数据" prop="date" sortable>
-                <template  v-slot:header='scope' slot-scope='scope' >{{scope.$index}}</template>
-                <template  v-slot:default='scope' slot-scope='scope' >{{scope.$index}}</template>
-                <el-table-column label="日期" prop="date" sortable></el-table-column>
-                <el-table-column label="姓名" prop="name"></el-table-column>
-                <el-table-column label="地址" prop="address"></el-table-column>
-            </el-table-column>
-            <el-table-column label="操作">
-            </el-table-column>
-            <template v-slot:append>append</template>
-        </el-table>
     </div>
 
 
     
 </script>
 <script type="module">
-    import { Table, TableContainer } from '../lib/ele-table.js'
+    import { Table, TableContainer } from './lib/ele-table.js'
 
     new Vue({
         el: '#app',
@@ -121,12 +63,20 @@
             number: '',
             columns: [
                 {
+                    prop: 'name',
+                    label: '姓名',
+                    width: '100',
+                    sortable: true,
+                    type: 'expand',
+                    render(h, props) {
+                        return h('div', props.row.name)
+                    },
+                    fixed: 'left'
+                },
+                {
                     type: 'selection',
                     label: '序号',
                     reserveSelection: "true",
-                    // renderHeader: (h, props) => {
-                    //     return h('el-button', '1ds')
-                    // },
                 },
                 {
                     type: 'index',
@@ -134,7 +84,6 @@
                 },
                 {
                     label: '基础数据',
-                    slotName: 'baise',
                     renderHeader: (h, props) => {
                         return h('el-button', '1ds')
                     },
@@ -145,19 +94,12 @@
                         render: (h, props) => {
                             return h('el-button', props.row.date)
                         },
-                    }, {
-                        prop: 'name',
-                        label: '姓名',
-                        width: '100',
-                        sortable: true,
-                        type: 'expand',
-                        render(h,props) {
-                            return h('div','div')
-                        }
                     }]
                 }, {
                     prop: 'address',
                     label: '地址',
+                    width: '500',
+                    fixed: 'right'
                 },
                 {
                     label: '操作',
@@ -167,7 +109,7 @@
                     width: '300',
 
                 }],
-            adata: Array.from(new Array(300)).map((val, index) => {
+            adata: Array.from(new Array(3)).map((val, index) => {
                 return {
                     id: index,
                     date: '2016-05-03',
@@ -176,19 +118,23 @@
                     city: '普陀区',
                     zip: 200333,
                     children: [{
-                        id: 31,
-                        date: '2016-05-01',
+                        id: index + 9999,
+                        date: '2016-05-03',
                         name: '王小虎',
-                        address: '上海市普陀区金沙江路 1519 弄'
+                        address: `上海市普陀区金沙江路 ${index + 9999} 弄`,
+                        city: '普陀区',
+                        zip: 200333
                     }, {
-                        id: 32,
-                        date: '2016-05-01',
+                        id: index + 9998,
+                        date: '2016-05-03',
                         name: '王小虎',
-                        address: '上海市普陀区金沙江路 1519 弄'
+                        address: `上海市普陀区金沙江路 ${index + 9998} 弄`,
+                        city: '普陀区',
+                        zip: 200333
                     }]
                 }
             }),
-            tdata: Array.from(new Array(300)).map((val, index) => {
+            tdata: Array.from(new Array(3000)).map((val, index) => {
                 return {
                     id: index,
                     date: '2016-05-03',
@@ -198,7 +144,6 @@
                     zip: Math.floor(Math.random() * 5)
                 }
             })
-
         },
 
         watch: {
@@ -209,7 +154,7 @@
         methods: {
             arraySpanMethod({ row, column, rowIndex, columnIndex }) {
                 if (columnIndex === 0) {
-                    if(rowIndex === 0) {
+                    if (rowIndex === 0) {
                         return [1, 1]
                     } else if (rowIndex % 2) {
                         return [2, 1]
@@ -220,17 +165,9 @@
                 }
             },
             getRowKey(row) {
-                return row.id + ''
+                return row.id
             },
             selectAll(selection) {
-
-
-                // 切换为全选
-                // if(dataLen > selectionLen) 
-                // 全不选
-                // else 
-
-
                 console.log(selection, '##selectAll##')
             },
             selectionChange(selection) {
@@ -255,9 +192,28 @@
                 selection.forEach(val => {
                     if (val === row) console.log('select-true')
                 })
+            },
+            expandChange(row, expandedRows) {
+                console.log(row, expandedRows, 'expandChange')
             }
         }
     })
 </script>
+<style>
+    .demo-table-expand {
+        font-size: 0;
+    }
+
+    .demo-table-expand label {
+        width: 90px;
+        color: #99a9bf;
+    }
+
+    .demo-table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        width: 50%;
+    }
+</style>
 
 </html>
