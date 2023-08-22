@@ -64,31 +64,6 @@ function _defineProperty(obj, key, value) {
   }
   return obj;
 }
-function _toConsumableArray(arr) {
-  return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
-}
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return _arrayLikeToArray(arr);
-}
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && iter[Symbol.iterator] != null || iter["@@iterator"] != null) return Array.from(iter);
-}
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
-}
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
-  return arr2;
-}
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
 function _toPrimitive(input, hint) {
   if (typeof input !== "object" || input === null) return input;
   var prim = input[Symbol.toPrimitive];
@@ -150,7 +125,6 @@ function toggleRowStatus(statusArr, row, newVal) {
     if (newVal && !included) {
       addRow();
     } else if (!newVal && included) {
-      console.log('removeRow', index);
       removeRow();
     }
   } else {
@@ -269,6 +243,19 @@ var selection = {
   }
 };
 
+function throttle(fn, time) {
+  var date = null;
+  return function () {
+    for (var _len = arguments.length, arg = new Array(_len), _key = 0; _key < _len; _key++) {
+      arg[_key] = arguments[_key];
+    }
+    if (date) return;
+    date = setTimeout(function () {
+      fn.apply(void 0, arg);
+      date = null;
+    }, time);
+  };
+}
 var eleTable = {
   name: 'eleTable',
   components: {
@@ -294,6 +281,8 @@ var eleTable = {
       startIdx: 0,
       // top
       selections: [],
+      WeakMap: new Map(),
+      position: [],
       btn: true
     };
   },
@@ -334,7 +323,11 @@ var eleTable = {
     console.log('mounted');
   },
   updated: function updated() {
+    var _this = this;
     console.log('updated');
+    this.$nextTick(function () {
+      _this.observerCB(null, true);
+    });
   },
   methods: {
     initProxy: function initProxy() {
@@ -346,26 +339,17 @@ var eleTable = {
       };
     },
     refCallBack: function refCallBack(el) {
-      var _this = this;
+      var _this2 = this;
       if (this.tableRef) return;
       this.tableRef = el;
       this.tableRef.$children.forEach(function (vnode) {
         var option = vnode.$options;
-        if (option.name === "ElTableBody") _this.warpperRef = vnode;
+        if (option.name === "ElTableBody") _this2.warpperRef = vnode;
       });
       this.tbody = this.warpperRef.$el.querySelectorAll('tbody');
       this.$nextTick(function () {
-        return _this.appendWarp();
-      });
-    },
-    bufferItemArr: function bufferItemArr() {
-      var _this2 = this;
-      // const trNodes = [...this.elWarp.querySelectorAll('tr')]
-      // this.itemHeightArr = trNodes.map((node,index) => {
-      //     return node.offsetHeight
-      // })
-      _toConsumableArray(this.elWarp.querySelectorAll('tr')).forEach(function (node, index) {
-        if (_this2.bufferIdx) _this2.itemHeight;
+        _this2.appendWarp();
+        // this.observer()
       });
     },
     appendWarp: function appendWarp() {
@@ -375,9 +359,13 @@ var eleTable = {
       this.elWarp = document.createElement('div');
       this.elWarp.className = 'ele-vertual-warp';
       this.elWarp.style.height = this.globalHeight + 'px';
+      this.elWarp.style.position = 'relative';
       // 
       this.elItems = document.createElement('div');
       this.elItems.className = 'ele-vertual-warpItems';
+      this.elItems.style.position = 'absolute';
+      this.elItems.style.left = '0px';
+      this.elItems.style.top = '0px';
       var elWarpper = elTable.querySelector('.el-table__body-wrapper');
       var elWarpperTable = elWarpper.querySelector('table');
       elWarpper.insertBefore(this.elWarp, elWarpperTable);
@@ -391,7 +379,6 @@ var eleTable = {
         this.leftWarp.className = 'ele-vertual-warp-right';
         this.leftWarp.style.height = this.globalHeight + 'px';
         var elLeftWarrperTable = elLeftWarpper.querySelector('table');
-        console.log(elLeftWarpper);
         elLeftWarpper.insertBefore(this.leftWarp, elLeftWarrperTable);
         this.leftWarp.appendChild(elLeftWarrperTable);
       }
@@ -403,48 +390,124 @@ var eleTable = {
         this.rightWarp.className = 'ele-vertual-warp-right';
         this.rightWarp.style.height = this.globalHeight + 'px';
         var elRightWarrperTable = elRightWarpper.querySelector('table');
-        console.log(elRightWarpper);
         elRightWarpper.insertBefore(this.rightWarp, elRightWarrperTable);
         this.rightWarp.appendChild(elRightWarrperTable);
       }
       setTimeout(function () {
-        // const that = this
-        // let oldStartIdx = this.startIdx
-        // let oldStartHeight = this.itemHeight
-        // const obsver = new MutationObserver(function (mutationList, observer) {
-        //     const idx = that.startIdx - that.bufferIdx
-        //     const rect = elWarpper.querySelectorAll('tr')[idx].getBoundingClientRect()
-        //     that.itemHeight = rect.height
-
-        //     if (oldStartIdx < that.startIdx) {
-        //         that.bufferHeight += rect.height
-
-        //     } else that.bufferHeight -= oldStartHeight
-
-        //     console.log('that.bufferHeight', that.bufferHeight, 'height', idx)
-        //     oldStartHeight = rect.height
-        //     oldStartIdx = that.startIdx
-
-        //     console.log(mutationList, observer, 'callback', rect)
-        // })
-        // obsver.observe(elWarpper, { subtree: true, childList: true })
-
+        _this3.observerCB(null, true);
         _this3.itemHeight = elWarpper.querySelector('tr').offsetHeight;
         console.log(elWarpper.querySelector('tr').offsetHeight, 'clientHeight', elWarpperTable.clientHeight / 13);
       });
-
+      var onScroll = throttle.call(this, this.eventScroll, 10);
       // scroll-event
-      elWarpper.addEventListener('scroll', this.eventScroll.bind(this));
+      elWarpper.addEventListener('scroll', onScroll);
+    },
+    observer: function observer() {
+      var table = this.elWarp.querySelector('table');
+      var observe = new MutationObserver(this.observerCB);
+      observe.observe(table, {
+        subtree: true,
+        childList: true
+      });
+    },
+    observerCB: function observerCB(mutation) {
+      var _this4 = this;
+      var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+      var buffIdx = this.bufferIdx;
+      // 初始化
+      if (!mutation && init) {
+        // const items = this.elWarp.querySelectorAll('tr')
+        // items.forEach(el => {
+        //     this.WeakMap.set(el, {
+        //         index: ++buffIdx,
+        //         ele: el,
+        //         rect: el.getBoundingClientRect()
+        //     })
+        // })
+
+        // 
+        var items = this.elWarp.querySelectorAll('tr');
+        items.forEach(function (el) {
+          var height = el.getBoundingClientRect().height;
+          var oldIdx = buffIdx - 1;
+          if (oldIdx >= 0) _this4.position[buffIdx] = {
+            index: buffIdx,
+            height: height,
+            top: _this4.position[oldIdx].bottom,
+            bottom: height + _this4.position[oldIdx].bottom
+          };else {
+            _this4.position[buffIdx] = {
+              index: buffIdx,
+              height: height,
+              top: 0,
+              bottom: height
+            };
+          }
+          buffIdx++;
+        });
+        console.log(this.position);
+      } else {
+        mutation.forEach(function (val) {
+          if (val.addedNodes.length) {
+            val.addedNodes.forEach(function (el) {
+              var height = el.getBoundingClientRect().height;
+              var oldIdx = buffIdx - 1;
+              if (oldIdx >= 0) _this4.position[buffIdx] = {
+                index: buffIdx,
+                height: height,
+                top: _this4.position[oldIdx].bottom,
+                bottom: height + _this4.position[oldIdx].bottom
+              };else {
+                _this4.position[buffIdx] = {
+                  index: buffIdx,
+                  height: height,
+                  top: 0,
+                  bottom: height
+                };
+              }
+              buffIdx++;
+            });
+          }
+
+          // if (val.addedNodes.length) {
+          //     val.addedNodes.forEach(el => {
+          //         this.WeakMap.set(el, {
+          //             index: ++buffIdx,
+          //             ele: el,
+          //             rect: el.getBoundingClientRect()
+          //         })
+          //     })
+
+          // }
+          // else if (val.removedNodes.length) {
+          //     val.removedNodes.forEach(el => {
+          //         // console.log(el, 'removeNodes')
+          //         this.WeakMap.delete(el)
+          //     })
+          // }
+        });
+      }
+
+      // console.log('observe', mutation)
+      console.log('observe', this.position);
     },
     eventScroll: function eventScroll(ev) {
       var top = ev.target.scrollTop;
-      this.startIdx = Math.floor(top / this.itemHeight);
-      var bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight;
-      // const bufferTop = this.bufferHeight
+      console.log(this.position);
+      // part 1
+      // this.startIdx = Math.floor(top / this.itemHeight)
+      // const bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight
+      // const topTo = (top - top % this.itemHeight) - bufferTop
 
-      var topTo = top - top % this.itemHeight - bufferTop;
-      // console.log(bufferTop, 'buffTop',top)
-      // console.log(top % this.itemHeight)
+      // part 2
+      var current = this.position.find(function (val) {
+        return val.bottom > top && top >= val.top;
+      });
+      console.log(current.index, 'current', top);
+      this.startIdx = current.index;
+      this.itemHeight = current.height;
+      current.top;
+      var topTo = top - top % current.height;
       this.elWarp.style.height = this.globalHeight - topTo + 'px';
       this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
 
@@ -458,12 +521,10 @@ var eleTable = {
         this.rightWarp.style.height = this.globalHeight - topTo + 'px';
         this.rightWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
       }
-
-      // this.bufferItemArr()
     }
   },
   render: function render(h) {
-    var _this4 = this;
+    var _this5 = this;
     this.$attrs;
     return h("el-table", mergeJsxProps([{
       "attrs": {
@@ -478,7 +539,7 @@ var eleTable = {
     }]), [this.columns.map(function (col) {
       return h(eleColumn, mergeJsxProps([{}, {
         "props": _objectSpread2(_objectSpread2({}, col), {}, {
-          globalSlots: _this4.$slots
+          globalSlots: _this5.$slots
         })
       }]));
     }), h("template", {

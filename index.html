@@ -1,34 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
     <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script> -->
     <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-</head>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    />
+  </head>
 
-<body>
-    <div id="app">
-
-    </div>
-</body>
-<script type="text/x-template" id="template">
+  <body>
+    <div id="app"></div>
+  </body>
+  <script type="text/x-template" id="template">
     <div>
         <!-- el-table -->
 
 
         <!-- table -->
         <ele-table class='ele-table' ref='table' height='500'
-            :data="tdata" 
-            :columns="columns" 
+            :data="tdata"
+            :columns="columns"
             :row-key="getRowKey"
             :default-expand-all="false"
+            :expand-row-keys="[1,2]"
             @select-all="selectAll"
             @selection-change="selectionChange"
             @row-click='rowClick'
@@ -40,180 +41,187 @@
         </ele-table>
         <el-button @click="onClick">toggleAllSelection</el-button>
     </div>
-
-
-    
-</script>
-<script type="module">
-    import { Table, TableContainer } from './lib/ele-table.js'
+  </script>
+  <script type="module">
+    import { Table, TableContainer } from "./lib/ele-table.js";
 
     new Vue({
-        el: '#app',
-        components: {
-            eleTable: Table,
-            eleTableContainer: TableContainer
+      el: "#app",
+      components: {
+        eleTable: Table,
+        eleTableContainer: TableContainer,
+      },
+      template: "#template",
+      data: {
+        pageOpt: {
+          background: true,
+          layout: "prev, pager, next",
+          total: 100,
         },
-        template: '#template',
-        data: {
-            pageOpt: {
-                background: true,
-                layout: "prev, pager, next",
-                total: 100
+        number: "",
+        columns: [
+          {
+            prop: "name",
+            label: "姓名",
+            width: "100",
+            sortable: true,
+            // type: "expand",
+            render(h, props) {
+              return h("div", props.row.name);
             },
-            number: '',
-            columns: [
-                {
-                    prop: 'name',
-                    label: '姓名',
-                    width: '100',
-                    sortable: true,
-                    type: 'expand',
-                    render(h, props) {
-                        return h('div', props.row.name)
-                    },
-                    fixed: 'left'
+            // fixed: "left",
+          },
+          {
+            type: "selection",
+            label: "序号",
+            reserveSelection: "true",
+            // fixed: 'left'
+          },
+          {
+            type: "index",
+            label: "序号",
+          },
+          {
+            label: "基础数据",
+            children: [
+              {
+                prop: "date",
+                label: "日期",
+                width: "1800",
+                render: (h, props) => {
+                  return h("el-button", props.row.date);
                 },
-                {
-                    type: 'selection',
-                    label: '序号',
-                    reserveSelection: "true",
-                },
-                {
-                    type: 'index',
-                    label: '序号',
-                },
-                {
-                    label: '基础数据',
-                    renderHeader: (h, props) => {
-                        return h('el-button', '1ds')
-                    },
-                    children: [{
-                        prop: 'date',
-                        label: '日期',
-                        width: '200',
-                        render: (h, props) => {
-                            return h('el-button', props.row.date)
-                        },
-                    }]
-                }, {
-                    prop: 'address',
-                    label: '地址',
-                    width: '500',
-                    fixed: 'right'
-                },
-                {
-                    label: '操作',
-                    renderHeader: (h, props) => {
-                        return h('el-button', 123123)
-                    },
-                    width: '300',
+              },
+            ],
+          },
+          {
+            prop: "address",
+            label: "地址",
+            width: "500",
 
-                }],
-            adata: Array.from(new Array(3)).map((val, index) => {
-                return {
-                    id: index,
-                    date: '2016-05-03',
-                    name: '王小虎',
-                    address: `上海市普陀区金沙江路 ${index} 弄`,
-                    city: '普陀区',
-                    zip: 200333,
-                    children: [{
-                        id: index + 9999,
-                        date: '2016-05-03',
-                        name: '王小虎',
-                        address: `上海市普陀区金沙江路 ${index + 9999} 弄`,
-                        city: '普陀区',
-                        zip: 200333
-                    }, {
-                        id: index + 9998,
-                        date: '2016-05-03',
-                        name: '王小虎',
-                        address: `上海市普陀区金沙江路 ${index + 9998} 弄`,
-                        city: '普陀区',
-                        zip: 200333
-                    }]
-                }
-            }),
-            tdata: Array.from(new Array(3000)).map((val, index) => {
-                return {
-                    id: index,
-                    date: '2016-05-03',
-                    name: '王小虎',
-                    address: `上海市普陀区金沙江路 ${index} 弄`,
-                    city: '普陀区',
-                    zip: Math.floor(Math.random() * 5)
-                }
-            })
+          },
+        ],
+        adata: Array.from(new Array(3)).map((val, index) => {
+          return {
+            id: index,
+            date: "2016-05-03",
+            name: "王小虎",
+            address: `上海市普陀区金沙江路 ${index} 弄`,
+            city: "普陀区",
+            zip: 200333,
+            children: [
+              {
+                id: index + 9999,
+                date: "2016-05-03",
+                name: "王小虎",
+                address: `上海市普陀区金沙江路 ${index + 9999} 弄`,
+                city: "普陀区",
+                zip: 200333,
+              },
+              {
+                id: index + 9998,
+                date: "2016-05-03",
+                name: "王小虎",
+                address: `上海市普陀区金沙江路 ${index + 9998} 弄`,
+                city: "普陀区",
+                zip: 200333,
+              },
+            ],
+          };
+        }),
+        tdata: Array.from(new Array(2000)).map((val, index) => {
+          return {
+            id: index,
+            date: "2016-05-03",
+            name: "王小虎",
+            address: `上海市普陀区金沙江路 ${index} 弄`,
+            city: "普陀区",
+            zip: Math.floor(Math.random() * 5),
+            // children: [
+            //   {
+            //     id: index + 999,
+            //     date: "2016-05-03",
+            //     name: "王小虎",
+            //     address: `上海市普陀区金沙江路 ${index + 999} 弄`,
+            //     city: "普陀区",
+            //     zip: Math.floor(Math.random() * 5),
+            //   },
+            // ],
+          };
+        }),
+      },
+
+      watch: {
+        number(newVal) {
+          console.log(newVal, "newVal", this.number);
         },
-
-        watch: {
-            number(newVal) {
-                console.log(newVal, 'newVal', this.number)
+      },
+      methods: {
+        arraySpanMethod({ row, column, rowIndex, columnIndex }) {
+          if (columnIndex === 0) {
+            if (rowIndex === 0) {
+              return [1, 1];
+            } else if (rowIndex % 2) {
+              return [2, 1];
+            } else {
+              return [0, 0];
             }
+          }
         },
-        methods: {
-            arraySpanMethod({ row, column, rowIndex, columnIndex }) {
-                if (columnIndex === 0) {
-                    if (rowIndex === 0) {
-                        return [1, 1]
-                    } else if (rowIndex % 2) {
-                        return [2, 1]
-                    } else {
-                        return [0, 0]
-                    }
-
-                }
-            },
-            getRowKey(row) {
-                return row.id
-            },
-            selectAll(selection) {
-                console.log(selection, '##selectAll##')
-            },
-            selectionChange(selection) {
-                console.log(selection, '##selectionChange##')
-            },
-            onClick() {
-                console.log(this.$refs.table.$children[0])
-                this.tdata.forEach(row => {
-                    this.$refs.table.$children[0].toggleRowSelection(row, true)
-                })
-                // const table = 
-            },
-            rowClick(row, column, event) {
-                const selection = this.$refs.table.$children[0].store.states.selection
-                selection.forEach(val => {
-                    if (val === row) console.log('true')
-                })
-                console.log(row, 'rowClick', this.$refs.table.$children[0].store.states.selection)
-            },
-            select(selection, row) {
-                console.log('select', selection, row)
-                selection.forEach(val => {
-                    if (val === row) console.log('select-true')
-                })
-            },
-            expandChange(row, expandedRows) {
-                console.log(row, expandedRows, 'expandChange')
-            }
-        }
-    })
-</script>
-<style>
+        getRowKey(row) {
+          return row.id;
+        },
+        selectAll(selection) {
+          console.log(selection, "##selectAll##");
+        },
+        selectionChange(selection) {
+          console.log(selection, "##selectionChange##");
+        },
+        onClick() {
+          console.log(this.$refs.table.$children[0]);
+          this.tdata.forEach((row) => {
+            this.$refs.table.$children[0].toggleRowSelection(row, true);
+          });
+          // const table =
+        },
+        rowClick(row, column, event) {
+          const selection =
+            this.$refs.table.$children[0].store.states.selection;
+          selection.forEach((val) => {
+            if (val === row) console.log("true");
+          });
+          console.log(
+            row,
+            "rowClick",
+            this.$refs.table.$children[0].store.states.selection
+          );
+        },
+        select(selection, row) {
+          console.log("select", selection, row);
+          selection.forEach((val) => {
+            if (val === row) console.log("select-true");
+          });
+        },
+        expandChange(row, expandedRows) {
+          console.log(row, expandedRows, "expandChange");
+        },
+      },
+    });
+  </script>
+  <style>
     .demo-table-expand {
-        font-size: 0;
+      font-size: 0;
     }
 
     .demo-table-expand label {
-        width: 90px;
-        color: #99a9bf;
+      width: 90px;
+      color: #99a9bf;
     }
 
     .demo-table-expand .el-form-item {
-        margin-right: 0;
-        margin-bottom: 0;
-        width: 50%;
+      margin-right: 0;
+      margin-bottom: 0;
+      width: 50%;
     }
-</style>
-
+  </style>
 </html>

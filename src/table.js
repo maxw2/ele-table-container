@@ -2,6 +2,17 @@ import eleColumn from './column'
 import selection from './selection'
 
 
+function throttle(fn, time) {
+    let date = null
+    return (...arg) => {
+        if (date) return
+        date = setTimeout(() => {
+            fn(...arg)
+            date = null
+        }, time)
+    }
+}
+
 export default {
     name: 'eleTable',
     components: { eleColumn },
@@ -25,6 +36,8 @@ export default {
             startIdx: 0,
             // top
             selections: [],
+            WeakMap: new Map(),
+            position: [],
             btn: true
         }
     },
@@ -67,6 +80,11 @@ export default {
     },
     updated() {
         console.log('updated')
+        this.$nextTick(() => {
+            this.observerCB(null, true)
+        })
+
+
     },
     methods: {
         initProxy() {
@@ -88,18 +106,11 @@ export default {
             })
             this.tbody = this.warpperRef.$el.querySelectorAll('tbody')
 
-            this.$nextTick(() => this.appendWarp())
-
-
-        },
-        bufferItemArr() {
-            // const trNodes = [...this.elWarp.querySelectorAll('tr')]
-            // this.itemHeightArr = trNodes.map((node,index) => {
-            //     return node.offsetHeight
-            // })
-            [...this.elWarp.querySelectorAll('tr')].forEach((node, index) => {
-                if (this.bufferIdx) this.itemHeight
+            this.$nextTick(() => {
+                this.appendWarp()
+                // this.observer()
             })
+
 
         },
         appendWarp() {
@@ -108,9 +119,13 @@ export default {
             this.elWarp = document.createElement('div')
             this.elWarp.className = 'ele-vertual-warp'
             this.elWarp.style.height = this.globalHeight + 'px'
+            this.elWarp.style.position = 'relative'
             // 
             this.elItems = document.createElement('div')
             this.elItems.className = 'ele-vertual-warpItems'
+            this.elItems.style.position = 'absolute'
+            this.elItems.style.left = '0px'
+            this.elItems.style.top = '0px'
 
             const elWarpper = elTable.querySelector('.el-table__body-wrapper')
             const elWarpperTable = elWarpper.querySelector('table')
@@ -126,7 +141,6 @@ export default {
                 this.leftWarp.className = 'ele-vertual-warp-right'
                 this.leftWarp.style.height = this.globalHeight + 'px'
                 const elLeftWarrperTable = elLeftWarpper.querySelector('table')
-                console.log(elLeftWarpper)
                 elLeftWarpper.insertBefore(this.leftWarp, elLeftWarrperTable)
                 this.leftWarp.appendChild(elLeftWarrperTable)
             }
@@ -138,7 +152,6 @@ export default {
                 this.rightWarp.className = 'ele-vertual-warp-right'
                 this.rightWarp.style.height = this.globalHeight + 'px'
                 const elRightWarrperTable = elRightWarpper.querySelector('table')
-                console.log(elRightWarpper)
                 elRightWarpper.insertBefore(this.rightWarp, elRightWarrperTable)
                 this.rightWarp.appendChild(elRightWarrperTable)
             }
@@ -147,48 +160,128 @@ export default {
 
 
             setTimeout(() => {
-                // const that = this
-                // let oldStartIdx = this.startIdx
-                // let oldStartHeight = this.itemHeight
-                // const obsver = new MutationObserver(function (mutationList, observer) {
-                //     const idx = that.startIdx - that.bufferIdx
-                //     const rect = elWarpper.querySelectorAll('tr')[idx].getBoundingClientRect()
-                //     that.itemHeight = rect.height
-
-                //     if (oldStartIdx < that.startIdx) {
-                //         that.bufferHeight += rect.height
-
-                //     } else that.bufferHeight -= oldStartHeight
-
-                //     console.log('that.bufferHeight', that.bufferHeight, 'height', idx)
-                //     oldStartHeight = rect.height
-                //     oldStartIdx = that.startIdx
-
-
-                //     console.log(mutationList, observer, 'callback', rect)
-                // })
-                // obsver.observe(elWarpper, { subtree: true, childList: true })
-
+                this.observerCB(null, true)
                 this.itemHeight = elWarpper.querySelector('tr').offsetHeight
                 console.log(elWarpper.querySelector('tr').offsetHeight, 'clientHeight', elWarpperTable.clientHeight / 13)
             })
 
-
+            const onScroll = throttle.call(this, this.eventScroll, 10)
             // scroll-event
-            elWarpper.addEventListener('scroll', this.eventScroll.bind(this))
+            elWarpper.addEventListener('scroll', onScroll)
 
+        },
+        observer() {
+            const table = this.elWarp.querySelector('table')
+            const observe = new MutationObserver(this.observerCB)
+            observe.observe(table, {
+                subtree: true,
+                childList: true
+            })
+        },
+        observerCB(mutation, init = false) {
+            let buffIdx = this.bufferIdx
+            // 初始化
+            if (!mutation && init) {
+                // const items = this.elWarp.querySelectorAll('tr')
+                // items.forEach(el => {
+                //     this.WeakMap.set(el, {
+                //         index: ++buffIdx,
+                //         ele: el,
+                //         rect: el.getBoundingClientRect()
+                //     })
+                // })
+
+                // 
+                const items = this.elWarp.querySelectorAll('tr')
+                items.forEach(el => {
+                    const height = el.getBoundingClientRect().height
+                    const oldIdx = buffIdx - 1
+                    if (oldIdx >= 0) this.position[buffIdx] = {
+                        index: buffIdx,
+                        height: height,
+                        top: this.position[oldIdx].bottom,
+                        bottom: height + this.position[oldIdx].bottom
+                    }
+                    else {
+                        this.position[buffIdx] = {
+                            index: buffIdx,
+                            height: height,
+                            top: 0,
+                            bottom: height
+                        }
+                    }
+                    buffIdx++
+                })
+
+                console.log(this.position)
+            }
+            else {
+                mutation.forEach(val => {
+                    if (val.addedNodes.length) {
+                        val.addedNodes.forEach(el => {
+                            const height = el.getBoundingClientRect().height
+                            const oldIdx = buffIdx - 1
+                            if (oldIdx >= 0) this.position[buffIdx] = {
+                                index: buffIdx,
+                                height: height,
+                                top: this.position[oldIdx].bottom,
+                                bottom: height + this.position[oldIdx].bottom
+                            }
+                            else {
+                                this.position[buffIdx] = {
+                                    index: buffIdx,
+                                    height: height,
+                                    top: 0,
+                                    bottom: height
+                                }
+                            }
+                            buffIdx++
+                        })
+                    }
+
+                    // if (val.addedNodes.length) {
+                    //     val.addedNodes.forEach(el => {
+                    //         this.WeakMap.set(el, {
+                    //             index: ++buffIdx,
+                    //             ele: el,
+                    //             rect: el.getBoundingClientRect()
+                    //         })
+                    //     })
+
+                    // }
+                    // else if (val.removedNodes.length) {
+                    //     val.removedNodes.forEach(el => {
+                    //         // console.log(el, 'removeNodes')
+                    //         this.WeakMap.delete(el)
+                    //     })
+                    // }
+
+                })
+            }
+
+            // console.log('observe', mutation)
+            console.log('observe', this.position)
         },
         eventScroll(ev) {
             const top = ev.target.scrollTop
 
-            this.startIdx = Math.floor(top / this.itemHeight)
+            console.log(this.position)
+            // part 1
+            // this.startIdx = Math.floor(top / this.itemHeight)
+            // const bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight
+            // const topTo = (top - top % this.itemHeight) - bufferTop
 
-            const bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight
-            // const bufferTop = this.bufferHeight
+            // part 2
+            let current = this.position.find(val => val.bottom > top && top >= val.top)
+            console.log(current.index, 'current', top)
+            this.startIdx = current.index
+            this.itemHeight = current.height
+            const bufferTop = current.top
+            
+            const topTo = (top - top % current.height)
 
-            const topTo = (top - top % this.itemHeight) - bufferTop
-            // console.log(bufferTop, 'buffTop',top)
-            // console.log(top % this.itemHeight)
+            
+
             this.elWarp.style.height = this.globalHeight - topTo + 'px'
             this.elWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
 
@@ -203,8 +296,6 @@ export default {
                 this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
             }
 
-
-            // this.bufferItemArr()
         }
     },
     render(h) {

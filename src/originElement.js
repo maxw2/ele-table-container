@@ -16,7 +16,6 @@ export function toggleRowStatus(statusArr, row, newVal) {
         if (newVal && !included) {
             addRow();
         } else if (!newVal && included) {
-            console.log('removeRow', index);
             removeRow();
         }
     } else {
