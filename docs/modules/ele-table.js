@@ -29,6 +29,33 @@ var normalMerge = ["attrs", "props", "domProps"],
     };
   };
 
+function _iterableToArrayLimit(arr, i) {
+  var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"];
+  if (null != _i) {
+    var _s,
+      _e,
+      _x,
+      _r,
+      _arr = [],
+      _n = !0,
+      _d = !1;
+    try {
+      if (_x = (_i = _i.call(arr)).next, 0 === i) {
+        if (Object(_i) !== _i) return;
+        _n = !1;
+      } else for (; !(_n = (_s = _x.call(_i)).done) && (_arr.push(_s.value), _arr.length !== i); _n = !0);
+    } catch (err) {
+      _d = !0, _e = err;
+    } finally {
+      try {
+        if (!_n && null != _i.return && (_r = _i.return(), Object(_r) !== _r)) return;
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+    return _arr;
+  }
+}
 function ownKeys(object, enumerableOnly) {
   var keys = Object.keys(object);
   if (Object.getOwnPropertySymbols) {
@@ -63,6 +90,28 @@ function _defineProperty(obj, key, value) {
     obj[key] = value;
   }
   return obj;
+}
+function _slicedToArray(arr, i) {
+  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+}
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+}
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+  return arr2;
+}
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 function _toPrimitive(input, hint) {
   if (typeof input !== "object" || input === null) return input;
@@ -106,6 +155,114 @@ var eleColumn = {
         })
       }]));
     }) : null]);
+  }
+};
+
+function throttle(fn, time) {
+  var date = null;
+  return function () {
+    for (var _len = arguments.length, arg = new Array(_len), _key = 0; _key < _len; _key++) {
+      arg[_key] = arguments[_key];
+    }
+    if (date) return;
+    date = setTimeout(function () {
+      fn.apply(void 0, arg);
+      date = null;
+    }, time);
+  };
+}
+var init = {
+  data: function data() {
+    return {
+      tableRef: null,
+      warpperRef: null,
+      // 
+      elWarp: null,
+      elItems: null,
+      elTbody: null
+    };
+  },
+  mounted: function mounted() {
+    this.getTableRef();
+  },
+  methods: {
+    getTableRef: function getTableRef() {
+      var _this = this;
+      if (this.tableRef) return;
+      this.tableRef = this.$children[0];
+      this.tableRef.$children.forEach(function (vnode) {
+        var option = vnode.$options;
+        if (option.name === "ElTableBody") _this.warpperRef = vnode;
+      });
+      this.elTbody = this.warpperRef.$el.querySelector('tbody');
+      // 
+      this.initProxy();
+      this.appendWarp();
+    },
+    initProxy: function initProxy() {
+      // wrappedRowRender
+      var that = this;
+      var _orgWrappedRowRender = this.warpperRef.wrappedRowRender;
+      this.warpperRef.wrappedRowRender = function (row, index) {
+        return _orgWrappedRowRender(row, index + that.bufferIdx);
+      };
+    },
+    appendWarp: function appendWarp() {
+      var elTable = this.tableRef.$el;
+      // 
+      this.elWarp = document.createElement('div');
+      this.elWarp.className = 'ele-vertual-warp';
+      this.elWarp.style.position = 'relative';
+      // 
+      this.elItems = document.createElement('div');
+      this.elItems.className = 'ele-vertual-warpItems';
+      this.elItems.style.position = 'absolute';
+      this.elItems.style.left = '0px';
+      this.elItems.style.top = '0px';
+      var elWarpper = elTable.querySelector('.el-table__body-wrapper');
+      var elWarpperTable = elWarpper.querySelector('table');
+      elWarpper.insertBefore(this.elWarp, elWarpperTable);
+      this.elItems.appendChild(elWarpperTable);
+      this.elWarp.appendChild(this.elItems);
+
+      // left
+      var elLeftWarpper = elTable.querySelector('.el-table__fixed .el-table__fixed-body-wrapper');
+      if (elLeftWarpper) {
+        this.leftWarp = document.createElement('div');
+        this.leftWarp.className = 'ele-vertual-warp-right';
+        // this.leftWarp.style.height = this.globalHeight + 'px'
+        var elLeftWarrperTable = elLeftWarpper.querySelector('table');
+        elLeftWarpper.insertBefore(this.leftWarp, elLeftWarrperTable);
+        this.leftWarp.appendChild(elLeftWarrperTable);
+      }
+
+      // right
+      var elRightWarpper = elTable.querySelector('.el-table__fixed-right .el-table__fixed-body-wrapper');
+      if (elRightWarpper) {
+        this.rightWarp = document.createElement('div');
+        this.rightWarp.className = 'ele-vertual-warp-right';
+        // this.rightWarp.style.height = this.globalHeight + 'px'
+        var elRightWarrperTable = elRightWarpper.querySelector('table');
+        elRightWarpper.insertBefore(this.rightWarp, elRightWarrperTable);
+        this.rightWarp.appendChild(elRightWarrperTable);
+      }
+
+      // scroll-event
+      elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 0));
+    },
+    initItemHeight: function initItemHeight() {
+      if (this.itemHeight) return this.itemHeight;
+      var average = this.elTbody.offsetHeight / (this.vCount + this.bufferCount);
+      this.itemHeight = Math.round(average);
+      var warpHeight = this.tableRef.$el.offsetHeight;
+      this.vCount = Math.ceil(warpHeight / average);
+      this.elWarp.style.height = this.globalHeight + 'px';
+      return this.itemHeight;
+    },
+    getGloHeight: function getGloHeight() {
+      console.log(this.position, this.data.length - 1, 'globalHeight', this.position[this.data.length - 1] || 0);
+      if (this.vertual) return this.position[this.data.length - 1] || 0;else return this.data.length * this.itemHeight;
+    }
   }
 };
 
@@ -169,7 +326,7 @@ var selection = {
   },
   methods: {
     initSelection: function initSelection() {
-      if (!this.tableRef) throw new Error('tableRef is error');
+      if (!this.tableRef) throw new Error('MODULE-SELECTION: tableRef is undefined');
       var that = this;
       // 全选
       function _toggleAllSelection() {
@@ -243,46 +400,79 @@ var selection = {
   }
 };
 
-function throttle(fn, time) {
-  var date = null;
-  return function () {
-    for (var _len = arguments.length, arg = new Array(_len), _key = 0; _key < _len; _key++) {
-      arg[_key] = arguments[_key];
+var vertual = {
+  data: function data() {
+    return {
+      posMap: [],
+      position: []
+    };
+  },
+  props: {
+    vertual: {
+      type: Boolean,
+      "default": true
+    },
+    estimatedHeight: {
+      type: Number,
+      "default": 0
     }
-    if (date) return;
-    date = setTimeout(function () {
-      fn.apply(void 0, arg);
-      date = null;
-    }, time);
-  };
-}
+  },
+  updated: function updated() {
+    this.getposMap();
+  },
+  methods: {
+    getposMap: function getposMap() {
+      var _this = this;
+      var tbody = this.elWarp.querySelectorAll('tr');
+      var idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
+      var bottom = this.position[idx - 1] || 0;
+      // let bottom = 0
+      tbody.forEach(function (el, index) {
+        bottom += el.offsetHeight;
+        _this.posMap[idx + index] = bottom;
+        _this.position[idx + index] = bottom;
+      });
+    },
+    getPosition: function getPosition() {
+      var _this2 = this;
+      var pos = [];
+      var bottom = 0;
+      this.data.map(function (val, index) {
+        var curMap = _this2.posMap[index];
+        if (curMap) bottom = curMap;else bottom += _this2.estimatedHeight || _this2.itemHeight;
+        pos[index] = bottom;
+      });
+      this.position = pos;
+      return pos;
+    },
+    getPosIdx: function getPosIdx(scrollTop) {
+      var idx = this.position.findIndex(function (bottom) {
+        return scrollTop <= bottom;
+      });
+      var height = this.position[idx - 1] ? this.position[idx] - this.position[idx - 1] : this.position[idx];
+      var bottom = this.position[idx];
+      return [idx, height, bottom];
+    }
+  }
+};
+
 var eleTable = {
   name: 'eleTable',
   components: {
     eleColumn: eleColumn
   },
-  mixins: [selection],
+  mixins: [init, selection, vertual],
   data: function data() {
     return {
-      item: [],
-      tableRef: null,
-      warpperRef: null,
       // 
-      elWarp: null,
-      elItems: null,
+      itemHeight: 0,
       // 
-      elWarpHeight: null,
-      itemHeight: 48,
-      itemHeightArr: [],
-      // 
-      vCount: 7,
-      bufferCount: 2,
-      bufferHeight: 0,
+      vCount: 5,
       startIdx: 0,
       // top
       selections: [],
       WeakMap: new Map(),
-      position: [],
+      posMap: [],
       btn: true
     };
   },
@@ -298,11 +488,10 @@ var eleTable = {
       "default": function _default() {
         return [];
       }
-    }
-  },
-  watch: {
-    data: function data(val) {
-      this.elWarp.style.height = this.elItems * val.length + 'px';
+    },
+    bufferCount: {
+      type: Number,
+      "default": 0
     }
   },
   computed: {
@@ -315,231 +504,78 @@ var eleTable = {
       return this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
     },
     globalHeight: function globalHeight() {
-      return this.data.length * this.itemHeight;
+      if (this.vertual) {
+        return this.position[this.data.length - 1] || 0;
+      } else {
+        this.elWarp.style.height = this.data.length * this.itemHeight + 'px';
+        return this.data.length * this.itemHeight;
+      }
     }
   },
   mounted: function mounted() {
-    this.initProxy();
-    console.log('mounted');
-  },
-  updated: function updated() {
     var _this = this;
-    console.log('updated');
+    console.log('mounted', this);
     this.$nextTick(function () {
-      _this.observerCB(null, true);
+      _this.updateAllData();
     });
   },
   methods: {
-    initProxy: function initProxy() {
-      // wrappedRowRender
-      var that = this;
-      var _orgWrappedRowRender = this.warpperRef.wrappedRowRender;
-      this.warpperRef.wrappedRowRender = function (row, index) {
-        return _orgWrappedRowRender(row, index + that.bufferIdx);
-      };
-    },
-    refCallBack: function refCallBack(el) {
+    updateAllData: function updateAllData() {
       var _this2 = this;
-      if (this.tableRef) return;
-      this.tableRef = el;
-      this.tableRef.$children.forEach(function (vnode) {
-        var option = vnode.$options;
-        if (option.name === "ElTableBody") _this2.warpperRef = vnode;
-      });
-      this.tbody = this.warpperRef.$el.querySelectorAll('tbody');
       this.$nextTick(function () {
-        _this2.appendWarp();
-        // this.observer()
+        _this2.initItemHeight();
+        _this2.getPosition();
+        _this2.getposMap();
+        _this2.eventScroll();
       });
-    },
-    appendWarp: function appendWarp() {
-      var _this3 = this;
-      var elTable = this.tableRef.$el;
-      // 
-      this.elWarp = document.createElement('div');
-      this.elWarp.className = 'ele-vertual-warp';
-      this.elWarp.style.height = this.globalHeight + 'px';
-      this.elWarp.style.position = 'relative';
-      // 
-      this.elItems = document.createElement('div');
-      this.elItems.className = 'ele-vertual-warpItems';
-      this.elItems.style.position = 'absolute';
-      this.elItems.style.left = '0px';
-      this.elItems.style.top = '0px';
-      var elWarpper = elTable.querySelector('.el-table__body-wrapper');
-      var elWarpperTable = elWarpper.querySelector('table');
-      elWarpper.insertBefore(this.elWarp, elWarpperTable);
-      this.elItems.appendChild(elWarpperTable);
-      this.elWarp.appendChild(this.elItems);
-
-      // left
-      var elLeftWarpper = elTable.querySelector('.el-table__fixed .el-table__fixed-body-wrapper');
-      if (elLeftWarpper) {
-        this.leftWarp = document.createElement('div');
-        this.leftWarp.className = 'ele-vertual-warp-right';
-        this.leftWarp.style.height = this.globalHeight + 'px';
-        var elLeftWarrperTable = elLeftWarpper.querySelector('table');
-        elLeftWarpper.insertBefore(this.leftWarp, elLeftWarrperTable);
-        this.leftWarp.appendChild(elLeftWarrperTable);
-      }
-
-      // right
-      var elRightWarpper = elTable.querySelector('.el-table__fixed-right .el-table__fixed-body-wrapper');
-      if (elRightWarpper) {
-        this.rightWarp = document.createElement('div');
-        this.rightWarp.className = 'ele-vertual-warp-right';
-        this.rightWarp.style.height = this.globalHeight + 'px';
-        var elRightWarrperTable = elRightWarpper.querySelector('table');
-        elRightWarpper.insertBefore(this.rightWarp, elRightWarrperTable);
-        this.rightWarp.appendChild(elRightWarrperTable);
-      }
-      setTimeout(function () {
-        _this3.observerCB(null, true);
-        _this3.itemHeight = elWarpper.querySelector('tr').offsetHeight;
-        console.log(elWarpper.querySelector('tr').offsetHeight, 'clientHeight', elWarpperTable.clientHeight / 13);
-      });
-      var onScroll = throttle.call(this, this.eventScroll, 10);
-      // scroll-event
-      elWarpper.addEventListener('scroll', onScroll);
-    },
-    observer: function observer() {
-      var table = this.elWarp.querySelector('table');
-      var observe = new MutationObserver(this.observerCB);
-      observe.observe(table, {
-        subtree: true,
-        childList: true
-      });
-    },
-    observerCB: function observerCB(mutation) {
-      var _this4 = this;
-      var init = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-      var buffIdx = this.bufferIdx;
-      // 初始化
-      if (!mutation && init) {
-        // const items = this.elWarp.querySelectorAll('tr')
-        // items.forEach(el => {
-        //     this.WeakMap.set(el, {
-        //         index: ++buffIdx,
-        //         ele: el,
-        //         rect: el.getBoundingClientRect()
-        //     })
-        // })
-
-        // 
-        var items = this.elWarp.querySelectorAll('tr');
-        items.forEach(function (el) {
-          var height = el.getBoundingClientRect().height;
-          var oldIdx = buffIdx - 1;
-          if (oldIdx >= 0) _this4.position[buffIdx] = {
-            index: buffIdx,
-            height: height,
-            top: _this4.position[oldIdx].bottom,
-            bottom: height + _this4.position[oldIdx].bottom
-          };else {
-            _this4.position[buffIdx] = {
-              index: buffIdx,
-              height: height,
-              top: 0,
-              bottom: height
-            };
-          }
-          buffIdx++;
-        });
-        console.log(this.position);
-      } else {
-        mutation.forEach(function (val) {
-          if (val.addedNodes.length) {
-            val.addedNodes.forEach(function (el) {
-              var height = el.getBoundingClientRect().height;
-              var oldIdx = buffIdx - 1;
-              if (oldIdx >= 0) _this4.position[buffIdx] = {
-                index: buffIdx,
-                height: height,
-                top: _this4.position[oldIdx].bottom,
-                bottom: height + _this4.position[oldIdx].bottom
-              };else {
-                _this4.position[buffIdx] = {
-                  index: buffIdx,
-                  height: height,
-                  top: 0,
-                  bottom: height
-                };
-              }
-              buffIdx++;
-            });
-          }
-
-          // if (val.addedNodes.length) {
-          //     val.addedNodes.forEach(el => {
-          //         this.WeakMap.set(el, {
-          //             index: ++buffIdx,
-          //             ele: el,
-          //             rect: el.getBoundingClientRect()
-          //         })
-          //     })
-
-          // }
-          // else if (val.removedNodes.length) {
-          //     val.removedNodes.forEach(el => {
-          //         // console.log(el, 'removeNodes')
-          //         this.WeakMap.delete(el)
-          //     })
-          // }
-        });
-      }
-
-      // console.log('observe', mutation)
-      console.log('observe', this.position);
     },
     eventScroll: function eventScroll(ev) {
-      var top = ev.target.scrollTop;
-      console.log(this.position);
-      // part 1
-      // this.startIdx = Math.floor(top / this.itemHeight)
-      // const bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight
-      // const topTo = (top - top % this.itemHeight) - bufferTop
-
-      // part 2
-      var current = this.position.find(function (val) {
-        return val.bottom > top && top >= val.top;
-      });
-      console.log(current.index, 'current', top);
-      this.startIdx = current.index;
-      this.itemHeight = current.height;
-      current.top;
-      var topTo = top - top % current.height;
+      var _ev$target;
+      var scrollTop = (ev === null || ev === void 0 ? void 0 : (_ev$target = ev.target) === null || _ev$target === void 0 ? void 0 : _ev$target.scrollTop) || 0;
+      var topTo = 0;
+      if (!this.vertual) {
+        this.startIdx = Math.floor(scrollTop / this.itemHeight);
+        var bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight;
+        topTo = scrollTop - scrollTop % this.itemHeight - bufferTop;
+      }
+      if (this.vertual) {
+        var _this$getPosIdx = this.getPosIdx(scrollTop),
+          _this$getPosIdx2 = _slicedToArray(_this$getPosIdx, 3),
+          idx = _this$getPosIdx2[0],
+          height = _this$getPosIdx2[1],
+          bottom = _this$getPosIdx2[2];
+        this.startIdx = idx;
+        topTo = bottom - height;
+      }
       this.elWarp.style.height = this.globalHeight - topTo + 'px';
       this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
 
-      // left
-      if (this.leftWarp) {
-        this.leftWarp.style.height = this.globalHeight - topTo + 'px';
-        this.leftWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
-      }
-      // right
-      if (this.rightWarp) {
-        this.rightWarp.style.height = this.globalHeight - topTo + 'px';
-        this.rightWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
-      }
+      // // left
+      // if (this.leftWarp) {
+      //     this.leftWarp.style.height = this.globalHeight - topTo + 'px'
+      //     this.leftWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
+      // }
+      // // right
+      // if (this.rightWarp) {
+      //     this.rightWarp.style.height = this.globalHeight - topTo + 'px'
+      //     this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
+      // }
     }
   },
   render: function render(h) {
-    var _this5 = this;
-    this.$attrs;
+    var _this3 = this;
     return h("el-table", mergeJsxProps([{
       "attrs": {
         "data": this.vData
       }
     }, {
       "attrs": this.$attrs
-    }, {
-      "ref": this.refCallBack
-    }, {
+    }, {}, {
       "on": this.$listeners
     }]), [this.columns.map(function (col) {
       return h(eleColumn, mergeJsxProps([{}, {
         "props": _objectSpread2(_objectSpread2({}, col), {}, {
-          globalSlots: _this5.$slots
+          globalSlots: _this3.$slots
         })
       }]));
     }), h("template", {

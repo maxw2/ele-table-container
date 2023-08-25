@@ -52,3 +52,29 @@ export const getRowIdentity = (row, rowKey) => {
         return rowKey.call(null, row);
     }
 };
+
+export function getRowClass(row, rowIndex) {
+    const classes = ['el-table__row', `row_${rowIndex}`];
+    if (this.table.highlightCurrentRow && row === this.store.states.currentRow) {
+        classes.push('current-row');
+    }
+
+    if (this.stripe && rowIndex % 2 === 1) {
+        classes.push('el-table__row--striped');
+    }
+    const rowClassName = this.table.rowClassName;
+    if (typeof rowClassName === 'string') {
+        classes.push(rowClassName);
+    } else if (typeof rowClassName === 'function') {
+        classes.push(rowClassName.call(null, {
+            row,
+            rowIndex
+        }));
+    }
+
+    if (this.store.states.expandRows.indexOf(row) > -1) {
+        classes.push('expanded');
+    }
+
+    return classes;
+}

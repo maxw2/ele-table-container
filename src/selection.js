@@ -5,7 +5,7 @@ export default {
     },
     methods: {
         initSelection() {
-            if(!this.tableRef) throw new Error('tableRef is error')
+            if(!this.tableRef) throw new Error('MODULE-SELECTION: tableRef is undefined')
             const that = this
             // 全选
             function _toggleAllSelection() {
