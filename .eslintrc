@@ -1,0 +1,16 @@
+// .eslintrc.js example
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module",
+        "ecmaFeatures" : {
+            // 非 react 项目关闭 jsx 语法校验,默认为 true 
+            "jsx" : true
+          }
+    }
+}

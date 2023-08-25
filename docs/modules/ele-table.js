@@ -331,8 +331,7 @@ var selection = {
       // 全选
       function _toggleAllSelection() {
         var states = this.states;
-        states.data;
-          var selection = states.selection;
+        var selection = states.selection;
         // when only some rows are selected (but not all), select or deselect all of them
         // depending on the value of selectOnIndeterminate
         var value = states.selectOnIndeterminate ? !states.isAllSelected : !(states.isAllSelected || selection.length);
@@ -562,8 +561,9 @@ var eleTable = {
       // }
     }
   },
-  render: function render(h) {
+  render: function render() {
     var _this3 = this;
+    var h = arguments[0];
     return h("el-table", mergeJsxProps([{
       "attrs": {
         "data": this.vData
@@ -634,7 +634,8 @@ var tableContainer = {
       return this.$attrs.getData;
     }
   },
-  render: function render(h, context) {
+  render: function render() {
+    var h = arguments[0];
     return h("div", {
       "class": 'ele-table-container'
     }, [h("ele-table", mergeJsxProps([{}, {

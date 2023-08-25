@@ -116,7 +116,7 @@ export default {
         }
 
     },
-    render(h) {
+    render() {
         return (
             <el-table data={this.vData} attrs={this.$attrs} on={this.$listeners}  >
                 {

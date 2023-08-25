@@ -50,7 +50,7 @@ export default {
             return this.$attrs.getData
         },
     },
-    render(h, context) {
+    render() {
         return (
             <div class='ele-table-container'>
                 <ele-table props={this.tProps} v-loading={this.loading}></ele-table>
