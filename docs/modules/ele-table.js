@@ -254,8 +254,10 @@ var init = {
       if (this.itemHeight) return this.itemHeight;
       var average = this.elTbody.offsetHeight / (this.vCount + this.bufferCount);
       this.itemHeight = Math.round(average);
-      var warpHeight = this.tableRef.$el.offsetHeight;
-      this.vCount = Math.ceil(warpHeight / average);
+      this.tableRef.$el.offsetHeight;
+
+      // this.vCount = Math.ceil(warpHeight / average)
+
       this.elWarp.style.height = this.globalHeight + 'px';
       return this.itemHeight;
     },
@@ -424,6 +426,7 @@ var vertual = {
       var _this = this;
       var tbody = this.elWarp.querySelectorAll('tr');
       var idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
+      // const idx = this.startIdx - this.bufferCount > 0 ? this.bufferIdx : 0
       var bottom = this.position[idx - 1] || 0;
       // let bottom = 0
       tbody.forEach(function (el, index) {
@@ -455,18 +458,162 @@ var vertual = {
   }
 };
 
+var merge = {
+  data: function data() {
+    return {
+      originSpanMehtod: [],
+      curRowSpan: {},
+      mergeKeyIndex: [],
+      mergeMap: {},
+      //  [col,col,col]
+      bufferMergeMap: {},
+      // 第一次的rowspan
+      bufferBtn: 0 // 
+    };
+  },
+
+  props: {
+    merge: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
+    }
+  },
+  created: function created() {
+    this.initSpanMethod();
+    this.mergeKeyIndex = this.getMergeKeyIndex(this.columns);
+    // this.initMergeArr()
+  },
+  mounted: function mounted() {
+    this.initMergeMap(this.data);
+  },
+  beforeUpdate: function beforeUpdate() {
+    // this.initMergeMap(this.data)
+    console.log('update');
+    this.bufferBtn = 0;
+  },
+  methods: {
+    initSpanMethod: function initSpanMethod() {
+      if (this.$attrs['span-method']) return;else if (this.merge) this.$attrs['span-method'] = this.handlerMerge;
+    },
+    // 初始化映射
+    initMergeMap: function initMergeMap() {
+      var _this = this;
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.data;
+      // const propsArr = this.getRowKey()
+      var rowSpanMap = {};
+      data.map(function (row, index) {
+        var nextRow = data[index + 1] || {};
+        _this.merge.forEach(function (key) {
+          if (!_this.mergeMap[key]) _this.mergeMap[key] = [];
+          if (row[key] === nextRow[key]) {
+            if (rowSpanMap[key]) {
+              _this.mergeMap[key].push({
+                rowspan: 0,
+                colspan: 1
+              });
+              rowSpanMap[key].rowspan += 1;
+            } else {
+              rowSpanMap[key] = {
+                rowspan: 1,
+                colspan: 1
+              };
+              _this.mergeMap[key].push(rowSpanMap[key]);
+            }
+          } else {
+            if (rowSpanMap[key]) {
+              rowSpanMap[key].rowspan += 1;
+              _this.mergeMap[key].push({
+                rowspan: 0,
+                colspan: 1
+              });
+            } else _this.mergeMap[key].push({
+              rowspan: 1,
+              colspan: 1
+            });
+            rowSpanMap[key] = null;
+          }
+        });
+      });
+      console.log(this.mergeMap);
+    },
+    fixBufferMergeMap: function fixBufferMergeMap(mergeKey, rowIndex) {
+      // 修改第一个
+      if (rowIndex === this.bufferIdx) {
+        //  是否需要重新计算 rowspan
+        if (this.mergeMap[mergeKey][this.bufferIdx].rowspan === 0) {
+          return {
+            rowspan: this.mergeMap[mergeKey].slice(this.bufferIdx).findIndex(function (val) {
+              return val.rowspan !== 0;
+            }),
+            colspan: 1
+          };
+        } else return this.mergeMap[mergeKey][this.bufferIdx];
+      } else return this.mergeMap[mergeKey][rowIndex];
+    },
+    getMergeKeyIndex: function getMergeKeyIndex(columns) {
+      function getKeyIndex(columns, mergeKey) {
+        var idx = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+        var merg = {};
+        columns.forEach(function (val, index) {
+          if (val.prop === mergeKey) {
+            merg = {
+              key: mergeKey,
+              index: index + idx
+            };
+          } else if (val.children) {
+            merg = getKeyIndex(val.children, mergeKey, index);
+          }
+        });
+        return merg;
+      }
+      return this.merge.map(function (key) {
+        return getKeyIndex(columns, key);
+      });
+    },
+    // changeBuffIdx(key, rowIndex) {
+    //     if (this.mergeMap[key][this.bufferIdx].rowspan === 0) {
+    //         this.bufferCount = 10
+    //     }
+    // },
+    handlerMerge: function handlerMerge(_ref) {
+      var _this2 = this;
+      var rowIndex = _ref.rowIndex,
+        columnIndex = _ref.columnIndex;
+      var spanRow = [1, 1];
+      this.mergeKeyIndex.forEach(function (_ref2) {
+        var key = _ref2.key,
+          index = _ref2.index;
+        // 设置虚拟列表缓存区
+        if (columnIndex === index) {
+          spanRow = _this2.fixBufferMergeMap(key, rowIndex);
+        }
+
+        // step 2
+        // if(columnIndex === index) {
+        //     this.changeBuffIdx(key, columnIndex)
+        //     spanRow = this.mergeMap[key][rowIndex]
+        // }
+      });
+
+      return spanRow;
+    }
+  }
+};
+
 var eleTable = {
   name: 'eleTable',
   components: {
     eleColumn: eleColumn
   },
-  mixins: [init, selection, vertual],
+  mixins: [init, selection, vertual, merge],
   data: function data() {
     return {
       // 
       itemHeight: 0,
       // 
-      vCount: 5,
+      vCount: 10,
       startIdx: 0,
       // top
       selections: [],
@@ -549,16 +696,16 @@ var eleTable = {
       this.elWarp.style.height = this.globalHeight - topTo + 'px';
       this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
 
-      // // left
-      // if (this.leftWarp) {
-      //     this.leftWarp.style.height = this.globalHeight - topTo + 'px'
-      //     this.leftWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
-      // }
-      // // right
-      // if (this.rightWarp) {
-      //     this.rightWarp.style.height = this.globalHeight - topTo + 'px'
-      //     this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
-      // }
+      // left
+      if (this.leftWarp) {
+        this.leftWarp.style.height = this.globalHeight - topTo + 'px';
+        this.leftWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
+      }
+      // right
+      if (this.rightWarp) {
+        this.rightWarp.style.height = this.globalHeight - topTo + 'px';
+        this.rightWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
+      }
     }
   },
   render: function render() {

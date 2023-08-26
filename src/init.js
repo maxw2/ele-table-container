@@ -99,7 +99,7 @@ export default {
             this.itemHeight = Math.round(average)
             const warpHeight = this.tableRef.$el.offsetHeight
 
-            this.vCount = Math.ceil(warpHeight / average)
+            // this.vCount = Math.ceil(warpHeight / average)
 
             this.elWarp.style.height = this.globalHeight + 'px'
             return this.itemHeight
