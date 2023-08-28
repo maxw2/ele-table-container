@@ -58,7 +58,7 @@
             @selection-change="selectionChange"
             @row-click='rowClick'
             @select='select'
-            :bufferCount="10"
+            :bufferCount="0"
             :merge="[ 'zip']"
     
             >
@@ -100,6 +100,14 @@
                             : h("el-button", props.row.name)
                     },
                     // fixed: "left",
+                },
+                {
+                    prop: 'random',
+                    label: "RANDOM",
+                    render(h, prop) {
+                        return Array.from(Array(prop.row.random) , () => h('el-button', prop.row.random))
+                    }
+                    // fixed: 'left'
                 },
                 {
                     type: "selection",
@@ -163,6 +171,7 @@
                 };
             }),
             tdata: Array.from(new Array(2000)).map((val, index) => {
+                const random = Math.floor(Math.random() * 5)
                 return {
                     id: index,
                     // date: "2016-05-03",
@@ -171,6 +180,7 @@
                     address: `上海市普陀区金沙江路 ${index} 弄`,
                     city: "普陀区",
                     zip: Math.floor(Math.random() * 5),
+                    random: random
                     // zip: index % 4 ? 1 : 2
                     // children: [
                     //   {
