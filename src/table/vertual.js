@@ -24,7 +24,6 @@ export default {
             const idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0
             // const idx = this.startIdx - this.bufferCount > 0 ? this.bufferIdx : 0
             let bottom = this.position[idx - 1] || 0
-            // let bottom = 0
             tbody.forEach((el, index) => {
                 bottom += el.offsetHeight
                 this.posMap[idx + index] = bottom

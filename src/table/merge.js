@@ -6,7 +6,6 @@ export default {
             mergeKeyIndex: [],
             mergeMap: {}, //  [col,col,col]
             bufferMergeMap: {}, // 第一次的rowspan
-            bufferBtn: 0  // 
         }
     },
     props: {
@@ -17,6 +16,11 @@ export default {
             }
         }
     },
+    watch: {
+        data(newVal) {
+            this.initMergeMap(newVal)
+        }
+    },
     created() {
         this.initSpanMethod()
         this.mergeKeyIndex = this.getMergeKeyIndex(this.columns)
@@ -25,17 +29,12 @@ export default {
     mounted() {
         this.initMergeMap(this.data)
     },
-    beforeUpdate() {
-        // this.initMergeMap(this.data)
-        console.log('update')
-        this.bufferBtn = 0
-    },
+    // updated
     methods: {
         initSpanMethod() {
             if (this.$attrs['span-method']) return
-            else if (this.merge) this.$attrs['span-method'] = this.handlerMerge
+            else if (this.merge) this.attrs['span-method'] = this.handlerMerge
         },
-
         // 初始化映射
         initMergeMap(data = this.data) {
             // const propsArr = this.getRowKey()
@@ -71,12 +70,10 @@ export default {
 
         },
         fixBufferMergeMap(mergeKey, rowIndex) {
-
             // 修改第一个
             if (rowIndex === this.bufferIdx) {
                 //  是否需要重新计算 rowspan
                 if (this.mergeMap[mergeKey][this.bufferIdx].rowspan === 0) {
-
                     return {
                         rowspan: this.mergeMap[mergeKey].slice(this.bufferIdx).findIndex(val => val.rowspan !== 0),
                         colspan: 1
@@ -105,11 +102,6 @@ export default {
                 return getKeyIndex(columns, key)
             })
         },
-        // changeBuffIdx(key, rowIndex) {
-        //     if (this.mergeMap[key][this.bufferIdx].rowspan === 0) {
-        //         this.bufferCount = 10
-        //     }
-        // },
         handlerMerge({ rowIndex, columnIndex }) {
             let spanRow = [1, 1]
             this.mergeKeyIndex.forEach(({ key, index }) => {

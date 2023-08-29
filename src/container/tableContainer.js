@@ -1,4 +1,4 @@
-import eleTable from './table'
+import eleTable from '@/table/index.js'
 
 export default {
     name: 'eleTableContainer',

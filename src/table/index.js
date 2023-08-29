@@ -1,10 +1,9 @@
-import eleColumn from './column'
+import eleColumn from '@/column/index.js'
 
 import init from './init'
 import selection from './selection'
 import vertual from './vertual'
 import merge from './merge'
-
 
 export default {
     name: 'eleTable',
@@ -12,16 +11,17 @@ export default {
     mixins: [init, selection, vertual, merge],
     data() {
         return {
+            attrs: {},
             // 
             itemHeight: 0,
             // 
             vCount: 10,
             startIdx: 0,
             // top
-            selections: [],
-            WeakMap: new Map(),
-            posMap: [],
-            btn: true
+            // selections: [],
+            // WeakMap: new Map(),
+            // posMap: [],
+            // btn: true
         }
     },
     props: {
@@ -42,6 +42,11 @@ export default {
             default: 0
         }
     },
+    watch: {
+        data() {
+            this.updateAllData()
+        }
+    },
     computed: {
         vData() {
             const start = this.bufferIdx
@@ -54,7 +59,6 @@ export default {
         },
         globalHeight() {
             if (this.vertual) {
-
                 return this.position[this.data.length - 1] || 0
             }
             else {
@@ -100,18 +104,18 @@ export default {
 
 
 
-            this.elWarp.style.height = this.globalHeight - topTo + 'px'
+            this.elWarp.style.height = this.getGloHeight() - topTo + 'px'
             this.elWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
 
 
             // left
             if (this.leftWarp) {
-                this.leftWarp.style.height = this.globalHeight - topTo + 'px'
+                this.leftWarp.style.height = this.getGloHeight() - topTo + 'px'
                 this.leftWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
             }
             // right
             if (this.rightWarp) {
-                this.rightWarp.style.height = this.globalHeight - topTo + 'px'
+                this.rightWarp.style.height = this.getGloHeight() - topTo + 'px'
                 this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
             }
 
@@ -120,13 +124,10 @@ export default {
     },
     render() {
         return (
-            <el-table data={this.vData} attrs={this.$attrs} on={this.$listeners}  >
+            <el-table data={this.vData} attrs={{ ...this.$attrs, ...this.attrs }} on={this.$listeners}  >
                 {
                     this.columns.map(col => {
-                        return <eleColumn props={{ ...col, globalSlots: this.$slots }}   >
-                            {/* <template slot={col.slotName}><slot name={col.slotName}></slot></template> */}
-
-                        </eleColumn>
+                        return <eleColumn props={{ ...col, globalSlots: this.$slots }} />
                     })
                 }
                 <template slot='append'>

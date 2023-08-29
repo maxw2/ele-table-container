@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,26 +9,23 @@
     <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
     <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" />
-</head>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+    />
+  </head>
 
-<body>
+  <body>
     <div id="app"></div>
-</body>
-<script type="text/x-template" id="template">
+  </body>
+  <script type="text/x-template" id="template">
     <div>
         <el-table :data='tdata' height='200px' >
             <el-table-column prop='zip' label='合并' >
-                <el-table-column prop='zip' label='合并' >
-
-                </el-table-column>
-                <el-table-column prop='zip' label='合并' >
-
-                </el-table-column>
+                <el-table-column prop='zip' label='合并' />
+                <el-table-column prop='zip' label='合并' />
             </el-table-column>
-            <el-table-column prop='zip' label='合并' >
-
-            </el-table-column>
+            <el-table-column prop='zip' label='合并' />
         </el-table>
         <!-- el-table -->
         <!-- <ele-table class='ele-table' ref='table' height='200px'
@@ -59,216 +55,198 @@
             @row-click='rowClick'
             @select='select'
             :bufferCount="0"
-            :merge="[ 'zip']"
-    
+            :merge="['zip']"
             >
             <template slot='append'>
                 <el-button >123123</el-button>
             </template>
         </ele-table>
         <el-button @click="onClick">toggleAllSelection</el-button>
+        <el-button @click='getData(2000)'>ajax</el-button>
     </div>
   </script>
-<script type="module">
+  <script type="module">
     import { Table, TableContainer } from "./lib/ele-table.js";
 
     new Vue({
-        el: "#app",
-        components: {
-            eleTable: Table,
-            eleTableContainer: TableContainer,
+      el: "#app",
+      components: {
+        eleTable: Table,
+        eleTableContainer: TableContainer,
+      },
+      template: "#template",
+      data: {
+        pageOpt: {
+          background: true,
+          layout: "prev, pager, next",
+          total: 100,
         },
-        template: "#template",
-        data: {
-            pageOpt: {
-                background: true,
-                layout: "prev, pager, next",
-                total: 100,
+        columns: [
+          {
+            label: "左侧固定",
+            render(h, props) {
+              return h("div", "左侧");
             },
-            number: "",
-            columns: [
-                {
-                    prop: "name",
-                    label: "姓名",
-                    width: "100",
-                    sortable: true,
-                    // type: "expand",
-                    render(h, props) {
-                        // return h("el-button", props.row.name)
-                        return props.row.id % 2 === 0 ?
-                            [h("el-button", props.row.name), h("el-button", props.row.name)]
-                            : h("el-button", props.row.name)
-                    },
-                    // fixed: "left",
-                },
-                {
-                    prop: 'random',
-                    label: "RANDOM",
-                    render(h, prop) {
-                        return Array.from(Array(prop.row.random) , () => h('el-button', prop.row.random))
-                    }
-                    // fixed: 'left'
-                },
-                {
-                    type: "selection",
-                    label: "序号",
-                    reserveSelection: "true",
-                    // fixed: 'left'
-                },
-                {
-                    type: "index",
-                    label: "序号",
-                },
-                {
-                    label: "基础数据",
-                    children: [
-                        {
-                            prop: "date",
-                            label: "日期",
-
-                        },
-                    ],
-                },
-                {
-                    prop: "zip",
-                    label: "合并",
-                    width: "500",
-
-                },
-                {
-                    prop: "address",
-                    label: "地址",
-                    width: "500",
-
-                },
+            // fixed: 'left'
+          },
+          {
+            prop: "name",
+            label: "姓",
+            // width: "300",
+            sortable: true,
+            render(h, props) {
+              return props.row.id % 2 === 0
+                ? [
+                    h("el-button", props.row.name),
+                    h("el-button", props.row.name),
+                  ]
+                : h("el-button", props.row.name);
+            },
+            // fixed: "left",
+          },
+          {
+            prop: "random",
+            label: "RANDOM",
+            render(h, prop) {
+              return Array.from(Array(prop.row.random), () =>
+                h("el-button", prop.row.random)
+              );
+            },
+            width: "100",
+            // fixed: 'left'
+          },
+          {
+            type: "selection",
+            label: "序号",
+            reserveSelection: "true",
+            // fixed: 'left'
+          },
+          {
+            type: "index",
+            label: "序号",
+          },
+          {
+            label: "基础数据",
+            children: [
+              {
+                prop: "date",
+                label: "日期",
+              },
             ],
-            adata: Array.from(new Array(3)).map((val, index) => {
-                return {
-                    id: index,
-                    date: "2016-05-03",
-                    name: "王小虎",
-                    address: `上海市普陀区金沙江路 ${index} 弄`,
-                    city: "普陀区",
-                    zip: 200333,
-                    children: [
-                        {
-                            id: index + 9999,
-                            date: "2016-05-03",
-                            name: "王小虎",
-                            address: `上海市普陀区金沙江路 ${index + 9999} 弄`,
-                            city: "普陀区",
-                            zip: 200333,
-                        },
-                        {
-                            id: index + 9998,
-                            date: "2016-05-03",
-                            name: "王小虎",
-                            address: `上海市普陀区金沙江路 ${index + 9998} 弄`,
-                            city: "普陀区",
-                            zip: 200333,
-                        },
-                    ],
-                };
-            }),
-            tdata: Array.from(new Array(2000)).map((val, index) => {
-                const random = Math.floor(Math.random() * 5)
-                return {
-                    id: index,
-                    // date: "2016-05-03",
-                    date: Math.floor(Math.random() * 5),
-                    name: "王小虎",
-                    address: `上海市普陀区金沙江路 ${index} 弄`,
-                    city: "普陀区",
-                    zip: Math.floor(Math.random() * 5),
-                    random: random
-                    // zip: index % 4 ? 1 : 2
-                    // children: [
-                    //   {
-                    //     id: index + 999,
-                    //     date: "2016-05-03",
-                    //     name: "王小虎",
-                    //     address: `上海市普陀区金沙江路 ${index + 999} 弄`,
-                    //     city: "普陀区",
-                    //     zip: Math.floor(Math.random() * 5),
-                    //   },
-                    // ],
-                };
-            }),
+          },
+          {
+            prop: "zip",
+            label: "合并",
+            width: "500",
+          },
+          {
+            prop: "address",
+            label: "地址",
+            width: "500",
+          },
+        ],
+        adata: Array.from(new Array(3)).map((val, index) => {
+          return {
+            id: index,
+            date: "2016-05-03",
+            name: "王小虎",
+            address: `上海市普陀区金沙江路 ${index} 弄`,
+            city: "普陀区",
+            zip: 200333,
+            children: [
+              {
+                id: index + 9999,
+                date: "2016-05-03",
+                name: "王小虎",
+                address: `上海市普陀区金沙江路 ${index + 9999} 弄`,
+                city: "普陀区",
+                zip: 200333,
+              },
+              {
+                id: index + 9998,
+                date: "2016-05-03",
+                name: "王小虎",
+                address: `上海市普陀区金沙江路 ${index + 9998} 弄`,
+                city: "普陀区",
+                zip: 200333,
+              },
+            ],
+          };
+        }),
+        tdata: [],
+      },
+      methods: {
+        getData(time) {
+          setTimeout(() => {
+            this.tdata = Array.from(new Array(2000)).map((val, index) => {
+              const random = Math.floor(Math.random() * 3);
+              return {
+                id: index,
+                // date: "2016-05-03",
+                date: Math.floor(Math.random() * 5),
+                name: "王小虎",
+                address: `上海市普陀区金沙江路 ${index} 弄`,
+                city: "普陀区",
+                zip: Math.floor(Math.random() * 5),
+                random: random,
+              };
+            });
+          }, time);
         },
 
-        watch: {
-            number(newVal) {
-                console.log(newVal, "newVal", this.number);
-            },
+        getRowKey(row) {
+          return row.id;
         },
-        methods: {
-            arraySpanMethod({ row, column, rowIndex, columnIndex }) {
-                // console.log(rowIndex, 'rowIndex')
-                // if (columnIndex !== 0) {
-                //     if (rowIndex % 2) {
-                //         return [2, 1];
-                //     } else {
-                //         return [0, 0];
-                //     }
-                // } else return [1,1]
-
-                return [1, 1]
-            },
-            getRowKey(row) {
-                return row.id;
-            },
-            selectAll(selection) {
-                console.log(selection, "##selectAll##");
-            },
-            selectionChange(selection) {
-                console.log(selection, "##selectionChange##");
-            },
-            onClick() {
-                console.log(this.$refs.table.$children[0]);
-                this.tdata.forEach((row) => {
-                    this.$refs.table.$children[0].toggleRowSelection(row, true);
-                });
-                // const table =
-            },
-            rowClick(row, column, event) {
-                const selection =
-                    this.$refs.table.$children[0].store.states.selection;
-                selection.forEach((val) => {
-                    if (val === row) console.log("true");
-                });
-                console.log(
-                    row,
-                    "rowClick",
-                    this.$refs.table.$children[0].store.states.selection
-                );
-            },
-            select(selection, row) {
-                console.log("select", selection, row);
-                selection.forEach((val) => {
-                    if (val === row) console.log("select-true");
-                });
-            },
-            expandChange(row, expandedRows) {
-                console.log(row, expandedRows, "expandChange");
-            },
+        selectAll(selection) {
+          console.log(selection, "##selectAll##");
         },
+        selectionChange(selection) {
+          console.log(selection, "##selectionChange##");
+        },
+        onClick() {
+          console.log(this.$refs.table.$children[0]);
+          this.tdata.forEach((row) => {
+            this.$refs.table.$children[0].toggleRowSelection(row, true);
+          });
+        },
+        rowClick(row, column, event) {
+          const selection =
+            this.$refs.table.$children[0].store.states.selection;
+          selection.forEach((val) => {
+            if (val === row) console.log("true");
+          });
+          console.log(
+            row,
+            "rowClick",
+            this.$refs.table.$children[0].store.states.selection
+          );
+        },
+        select(selection, row) {
+          console.log("select", selection, row);
+          selection.forEach((val) => {
+            if (val === row) console.log("select-true");
+          });
+        },
+        expandChange(row, expandedRows) {
+          console.log(row, expandedRows, "expandChange");
+        },
+      },
     });
-</script>
-<style>
+  </script>
+  <style>
     .demo-table-expand {
-        font-size: 0;
+      font-size: 0;
     }
 
     .demo-table-expand label {
-        width: 90px;
-        color: #99a9bf;
+      width: 90px;
+      color: #99a9bf;
     }
 
     .demo-table-expand .el-form-item {
-        margin-right: 0;
-        margin-bottom: 0;
-        width: 50%;
+      margin-right: 0;
+      margin-bottom: 0;
+      width: 50%;
     }
-</style>
-
+  </style>
 </html>

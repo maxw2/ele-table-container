@@ -1,3 +1,7 @@
+function getDefaultExportFromCjs (x) {
+	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
+}
+
 function _extends() {
   return _extends = Object.assign ? Object.assign.bind() : function (a) {
     for (var b, c = 1; c < arguments.length; c++) for (var d in b = arguments[c], b) Object.prototype.hasOwnProperty.call(b, d) && (a[d] = b[d]);
@@ -28,6 +32,9 @@ var normalMerge = ["attrs", "props", "domProps"],
       a && a.apply(this, arguments), b && b.apply(this, arguments);
     };
   };
+var helper = mergeJsxProps;
+
+var _mergeJSXProps2 = /*@__PURE__*/getDefaultExportFromCjs(helper);
 
 function _iterableToArrayLimit(arr, i) {
   var _i = null == arr ? null : "undefined" != typeof Symbol && arr[Symbol.iterator] || arr["@@iterator"];
@@ -144,12 +151,12 @@ var eleColumn = {
         }
       } : {};
     }
-    return h("el-table-column", mergeJsxProps([{}, {
+    return h("el-table-column", _mergeJSXProps2([{}, {
       "props": props
     }, {
       "scopedSlots": defaultRender(h, props)
     }]), [props.children ? props.children.map(function (col) {
-      return h(eleColumn, mergeJsxProps([{}, {
+      return h(eleColumn, _mergeJSXProps2([{}, {
         "props": _objectSpread2(_objectSpread2({}, col), {}, {
           globalSlots: globalSlots
         })
@@ -208,17 +215,20 @@ var init = {
       };
     },
     appendWarp: function appendWarp() {
+      var _this2 = this;
       var elTable = this.tableRef.$el;
       // 
       this.elWarp = document.createElement('div');
       this.elWarp.className = 'ele-vertual-warp';
-      this.elWarp.style.position = 'relative';
+
+      // this.elWarp.style.position = 'relative'
       // 
       this.elItems = document.createElement('div');
       this.elItems.className = 'ele-vertual-warpItems';
-      this.elItems.style.position = 'absolute';
-      this.elItems.style.left = '0px';
-      this.elItems.style.top = '0px';
+      // this.elItems.style.position = 'absolute'
+      // this.elItems.style.left = '0px'
+      // this.elItems.style.top = '0px'
+
       var elWarpper = elTable.querySelector('.el-table__body-wrapper');
       var elWarpperTable = elWarpper.querySelector('table');
       elWarpper.insertBefore(this.elWarp, elWarpperTable);
@@ -226,29 +236,31 @@ var init = {
       this.elWarp.appendChild(this.elItems);
 
       // left
-      var elLeftWarpper = elTable.querySelector('.el-table__fixed .el-table__fixed-body-wrapper');
-      if (elLeftWarpper) {
-        this.leftWarp = document.createElement('div');
-        this.leftWarp.className = 'ele-vertual-warp-right';
-        // this.leftWarp.style.height = this.globalHeight + 'px'
-        var elLeftWarrperTable = elLeftWarpper.querySelector('table');
-        elLeftWarpper.insertBefore(this.leftWarp, elLeftWarrperTable);
-        this.leftWarp.appendChild(elLeftWarrperTable);
-      }
+      this.$nextTick(function () {
+        var elLeftWarpper = elTable.querySelector('.el-table__fixed .el-table__fixed-body-wrapper');
+        if (elLeftWarpper) {
+          _this2.leftWarp = document.createElement('div');
+          _this2.leftWarp.className = 'ele-vertual-warp-right';
+          // this.leftWarp.style.height = this.globalHeight + 'px'
+          var elLeftWarrperTable = elLeftWarpper.querySelector('table');
+          elLeftWarpper.insertBefore(_this2.leftWarp, elLeftWarrperTable);
+          _this2.leftWarp.appendChild(elLeftWarrperTable);
+        }
 
-      // right
-      var elRightWarpper = elTable.querySelector('.el-table__fixed-right .el-table__fixed-body-wrapper');
-      if (elRightWarpper) {
-        this.rightWarp = document.createElement('div');
-        this.rightWarp.className = 'ele-vertual-warp-right';
-        // this.rightWarp.style.height = this.globalHeight + 'px'
-        var elRightWarrperTable = elRightWarpper.querySelector('table');
-        elRightWarpper.insertBefore(this.rightWarp, elRightWarrperTable);
-        this.rightWarp.appendChild(elRightWarrperTable);
-      }
+        // right
+        var elRightWarpper = elTable.querySelector('.el-table__fixed-right .el-table__fixed-body-wrapper');
+        if (elRightWarpper) {
+          _this2.rightWarp = document.createElement('div');
+          _this2.rightWarp.className = 'ele-vertual-warp-right';
+          // this.rightWarp.style.height = this.globalHeight + 'px'
+          var elRightWarrperTable = elRightWarpper.querySelector('table');
+          elRightWarpper.insertBefore(_this2.rightWarp, elRightWarrperTable);
+          _this2.rightWarp.appendChild(elRightWarrperTable);
+        }
+      });
 
       // scroll-event
-      elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 0));
+      elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 10));
     },
     initItemHeight: function initItemHeight() {
       if (this.itemHeight) return this.itemHeight;
@@ -262,7 +274,6 @@ var init = {
       return this.itemHeight;
     },
     getGloHeight: function getGloHeight() {
-      console.log(this.position, this.data.length - 1, 'globalHeight', this.position[this.data.length - 1] || 0);
       if (this.vertual) return this.position[this.data.length - 1] || 0;else return this.data.length * this.itemHeight;
     }
   }
@@ -428,7 +439,6 @@ var vertual = {
       var idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
       // const idx = this.startIdx - this.bufferCount > 0 ? this.bufferIdx : 0
       var bottom = this.position[idx - 1] || 0;
-      // let bottom = 0
       tbody.forEach(function (el, index) {
         bottom += el.offsetHeight;
         _this.posMap[idx + index] = bottom;
@@ -466,9 +476,7 @@ var merge = {
       mergeKeyIndex: [],
       mergeMap: {},
       //  [col,col,col]
-      bufferMergeMap: {},
-      // 第一次的rowspan
-      bufferBtn: 0 // 
+      bufferMergeMap: {} // 第一次的rowspan
     };
   },
 
@@ -480,6 +488,11 @@ var merge = {
       }
     }
   },
+  watch: {
+    data: function data(newVal) {
+      this.initMergeMap(newVal);
+    }
+  },
   created: function created() {
     this.initSpanMethod();
     this.mergeKeyIndex = this.getMergeKeyIndex(this.columns);
@@ -488,14 +501,10 @@ var merge = {
   mounted: function mounted() {
     this.initMergeMap(this.data);
   },
-  beforeUpdate: function beforeUpdate() {
-    // this.initMergeMap(this.data)
-    console.log('update');
-    this.bufferBtn = 0;
-  },
+  // updated
   methods: {
     initSpanMethod: function initSpanMethod() {
-      if (this.$attrs['span-method']) return;else if (this.merge) this.$attrs['span-method'] = this.handlerMerge;
+      if (this.$attrs['span-method']) return;else if (this.merge) this.attrs['span-method'] = this.handlerMerge;
     },
     // 初始化映射
     initMergeMap: function initMergeMap() {
@@ -572,11 +581,6 @@ var merge = {
         return getKeyIndex(columns, key);
       });
     },
-    // changeBuffIdx(key, rowIndex) {
-    //     if (this.mergeMap[key][this.bufferIdx].rowspan === 0) {
-    //         this.bufferCount = 10
-    //     }
-    // },
     handlerMerge: function handlerMerge(_ref) {
       var _this2 = this;
       var rowIndex = _ref.rowIndex,
@@ -610,18 +614,20 @@ var eleTable = {
   mixins: [init, selection, vertual, merge],
   data: function data() {
     return {
+      attrs: {},
       // 
       itemHeight: 0,
       // 
       vCount: 10,
-      startIdx: 0,
+      startIdx: 0
       // top
-      selections: [],
-      WeakMap: new Map(),
-      posMap: [],
-      btn: true
+      // selections: [],
+      // WeakMap: new Map(),
+      // posMap: [],
+      // btn: true
     };
   },
+
   props: {
     data: {
       type: Array,
@@ -638,6 +644,11 @@ var eleTable = {
     bufferCount: {
       type: Number,
       "default": 0
+    }
+  },
+  watch: {
+    data: function data() {
+      this.updateAllData();
     }
   },
   computed: {
@@ -693,17 +704,17 @@ var eleTable = {
         this.startIdx = idx;
         topTo = bottom - height;
       }
-      this.elWarp.style.height = this.globalHeight - topTo + 'px';
+      this.elWarp.style.height = this.getGloHeight() - topTo + 'px';
       this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
 
       // left
       if (this.leftWarp) {
-        this.leftWarp.style.height = this.globalHeight - topTo + 'px';
+        this.leftWarp.style.height = this.getGloHeight() - topTo + 'px';
         this.leftWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
       }
       // right
       if (this.rightWarp) {
-        this.rightWarp.style.height = this.globalHeight - topTo + 'px';
+        this.rightWarp.style.height = this.getGloHeight() - topTo + 'px';
         this.rightWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
       }
     }
@@ -711,16 +722,16 @@ var eleTable = {
   render: function render() {
     var _this3 = this;
     var h = arguments[0];
-    return h("el-table", mergeJsxProps([{
+    return h("el-table", _mergeJSXProps2([{
       "attrs": {
         "data": this.vData
       }
     }, {
-      "attrs": this.$attrs
+      "attrs": _objectSpread2(_objectSpread2({}, this.$attrs), this.attrs)
     }, {}, {
       "on": this.$listeners
     }]), [this.columns.map(function (col) {
-      return h(eleColumn, mergeJsxProps([{}, {
+      return h(eleColumn, _mergeJSXProps2([{}, {
         "props": _objectSpread2(_objectSpread2({}, col), {}, {
           globalSlots: _this3.$slots
         })
@@ -785,14 +796,14 @@ var tableContainer = {
     var h = arguments[0];
     return h("div", {
       "class": 'ele-table-container'
-    }, [h("ele-table", mergeJsxProps([{}, {
+    }, [h("ele-table", _mergeJSXProps2([{}, {
       "props": this.tProps
     }, {
       "directives": [{
         name: "loading",
         value: this.loading
       }]
-    }])), h("el-pagination", mergeJsxProps([{}, {
+    }])), h("el-pagination", _mergeJSXProps2([{}, {
       "props": this.pProps
     }, {}, {
       "on": {
