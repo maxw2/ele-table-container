@@ -165,19 +165,6 @@ var eleColumn = {
   }
 };
 
-function throttle(fn, time) {
-  var date = null;
-  return function () {
-    for (var _len = arguments.length, arg = new Array(_len), _key = 0; _key < _len; _key++) {
-      arg[_key] = arguments[_key];
-    }
-    if (date) return;
-    date = setTimeout(function () {
-      fn.apply(void 0, arg);
-      date = null;
-    }, time);
-  };
-}
 var init = {
   data: function data() {
     return {
@@ -260,15 +247,27 @@ var init = {
       });
 
       // scroll-event
-      elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 10));
+      // elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 10))
+      elWarpper.addEventListener('scroll', this.eventScroll);
     },
     initItemHeight: function initItemHeight() {
       if (this.itemHeight) return this.itemHeight;
-      var average = this.elTbody.offsetHeight / (this.vCount + this.bufferCount);
-      this.itemHeight = Math.round(average);
-      this.tableRef.$el.offsetHeight;
-
-      // this.vCount = Math.ceil(warpHeight / average)
+      var warpHeight = this.tableRef.$el.offsetHeight;
+      var tbodyHeight = this.tableRef.$el.querySelector('.el-table__body-wrapper tbody').offsetHeight;
+      var average = tbodyHeight / (this.vCount + this.bufferCount);
+      if (tbodyHeight && average && this.vertual) {
+        this.vCount = Math.ceil(warpHeight / average);
+        this.itemHeight = Math.round(average);
+        console.log('item');
+      } else if (tbodyHeight && average && !this.vertual) {
+        var tr = this.tableRef.$el.querySelector('.el-table__body-wrapper tr');
+        if (tr) {
+          this.itemHeight = tr.offsetHeight;
+          console.log(this.itemHeight, 'vas fasle');
+        }
+      }
+      console.log(warpHeight, 'warpJeight', average);
+      // 
 
       this.elWarp.style.height = this.globalHeight + 'px';
       return this.itemHeight;
@@ -437,6 +436,8 @@ var vertual = {
       var _this = this;
       var tbody = this.elWarp.querySelectorAll('tr');
       var idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
+      // if(this.posMap[idx]) return
+      // console.log('setmap')
       // const idx = this.startIdx - this.bufferCount > 0 ? this.bufferIdx : 0
       var bottom = this.position[idx - 1] || 0;
       tbody.forEach(function (el, index) {
@@ -444,6 +445,9 @@ var vertual = {
         _this.posMap[idx + index] = bottom;
         _this.position[idx + index] = bottom;
       });
+    },
+    resetPosMap: function resetPosMap() {
+      this.posMap = [];
     },
     getPosition: function getPosition() {
       var _this2 = this;
@@ -461,9 +465,13 @@ var vertual = {
       var idx = this.position.findIndex(function (bottom) {
         return scrollTop <= bottom;
       });
+      idx - this.bufferCount > 0 ? idx - this.bufferCount : 0;
       var height = this.position[idx - 1] ? this.position[idx] - this.position[idx - 1] : this.position[idx];
       var bottom = this.position[idx];
-      return [idx, height, bottom];
+      var top = bottom - height;
+      var bufferTop = 0;
+      console.log([idx, top, bufferTop], "[idx, top, bufferTop]");
+      return [idx, top, bufferTop];
     }
   }
 };
@@ -648,7 +656,11 @@ var eleTable = {
   },
   watch: {
     data: function data() {
+      this.resetPosMap();
       this.updateAllData();
+    },
+    columns: function columns() {
+      console.log('columns');
     }
   },
   computed: {
@@ -699,10 +711,10 @@ var eleTable = {
         var _this$getPosIdx = this.getPosIdx(scrollTop),
           _this$getPosIdx2 = _slicedToArray(_this$getPosIdx, 3),
           idx = _this$getPosIdx2[0],
-          height = _this$getPosIdx2[1],
-          bottom = _this$getPosIdx2[2];
+          top = _this$getPosIdx2[1],
+          _bufferTop = _this$getPosIdx2[2];
         this.startIdx = idx;
-        topTo = bottom - height;
+        topTo = top - _bufferTop;
       }
       this.elWarp.style.height = this.getGloHeight() - topTo + 'px';
       this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
@@ -717,6 +729,7 @@ var eleTable = {
         this.rightWarp.style.height = this.getGloHeight() - topTo + 'px';
         this.rightWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
       }
+      this.$emit('dataChang', this.vData);
     }
   },
   render: function render() {
@@ -727,14 +740,13 @@ var eleTable = {
         "data": this.vData
       }
     }, {
-      "attrs": _objectSpread2(_objectSpread2({}, this.$attrs), this.attrs)
+      "props": _objectSpread2(_objectSpread2({}, this.$attrs), this.attrs)
     }, {}, {
       "on": this.$listeners
     }]), [this.columns.map(function (col) {
+      console.log(_this3.columns);
       return h(eleColumn, _mergeJSXProps2([{}, {
-        "props": _objectSpread2(_objectSpread2({}, col), {}, {
-          globalSlots: _this3.$slots
-        })
+        "attrs": _objectSpread2({}, col)
       }]));
     }), h("template", {
       "slot": 'append'

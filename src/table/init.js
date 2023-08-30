@@ -93,16 +93,30 @@ export default {
 
 
             // scroll-event
-            elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 10))
+            // elWarpper.addEventListener('scroll', throttle.call(this, this.eventScroll, 10))
+            elWarpper.addEventListener('scroll', this.eventScroll)
 
         },
         initItemHeight() {
             if (this.itemHeight) return this.itemHeight
-            const average = this.elTbody.offsetHeight / (this.vCount + this.bufferCount)
-            this.itemHeight = Math.round(average)
             const warpHeight = this.tableRef.$el.offsetHeight
+            const tbodyHeight = this.tableRef.$el.querySelector('.el-table__body-wrapper tbody').offsetHeight
+            const average = tbodyHeight / (this.vCount + this.bufferCount)
+            if (tbodyHeight && average && this.vertual) {
+                this.vCount = Math.ceil(warpHeight / average)
+                this.itemHeight = Math.round(average)
+                console.log('item')
+            } else if (tbodyHeight && average && !this.vertual) {
+                const tr = this.tableRef.$el.querySelector('.el-table__body-wrapper tr')
+                if (tr) {
+                    this.itemHeight = tr.offsetHeight
+                    console.log(this.itemHeight, 'vas fasle')
+                }
 
-            // this.vCount = Math.ceil(warpHeight / average)
+            }
+
+            console.log(warpHeight, 'warpJeight', average)
+            // 
 
             this.elWarp.style.height = this.globalHeight + 'px'
             return this.itemHeight

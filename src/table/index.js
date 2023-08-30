@@ -44,7 +44,11 @@ export default {
     },
     watch: {
         data() {
+            this.resetPosMap()
             this.updateAllData()
+        },
+        columns() {
+            console.log('columns')
         }
     },
     computed: {
@@ -97,9 +101,9 @@ export default {
             }
 
             if (this.vertual) {
-                const [idx, height, bottom] = this.getPosIdx(scrollTop)
+                const [idx, top, bufferTop] = this.getPosIdx(scrollTop)
                 this.startIdx = idx
-                topTo = bottom - height
+                topTo = top - bufferTop
             }
 
 
@@ -119,15 +123,18 @@ export default {
                 this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
             }
 
+            this.$emit('dataChang', this.vData)
+
         }
 
     },
     render() {
         return (
-            <el-table data={this.vData} attrs={{ ...this.$attrs, ...this.attrs }} on={this.$listeners}  >
+            <el-table data={this.vData} props={{ ...this.$attrs, ...this.attrs }} on={this.$listeners}  >
                 {
                     this.columns.map(col => {
-                        return <eleColumn props={{ ...col, globalSlots: this.$slots }} />
+                        console.log(this.columns)
+                        return <eleColumn attrs={{ ...col }} />
                     })
                 }
                 <template slot='append'>
