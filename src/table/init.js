@@ -1,13 +1,13 @@
-function throttle(fn, time) {
-    let date = null
-    return (...arg) => {
-        if (date) return
-        date = setTimeout(() => {
-            fn(...arg)
-            date = null
-        }, time)
-    }
-}
+// function throttle(fn, time) {
+//     let date = null
+//     return (...arg) => {
+//         if (date) return
+//         date = setTimeout(() => {
+//             fn(...arg)
+//             date = null
+//         }, time)
+//     }
+// }
 
 export default {
     data() {
@@ -18,6 +18,7 @@ export default {
             elWarp: null,
             elItems: null,
             elTbody: null,
+            elWarpper: null
         }
     },
     mounted() {
@@ -61,6 +62,7 @@ export default {
             // this.elItems.style.top = '0px'
 
             const elWarpper = elTable.querySelector('.el-table__body-wrapper')
+            this.elWarpper = elWarpper
             const elWarpperTable = elWarpper.querySelector('table')
 
             elWarpper.insertBefore(this.elWarp, elWarpperTable)
@@ -98,28 +100,32 @@ export default {
 
         },
         initItemHeight() {
-            if (this.itemHeight) return this.itemHeight
-            const warpHeight = this.tableRef.$el.offsetHeight
-            const tbodyHeight = this.tableRef.$el.querySelector('.el-table__body-wrapper tbody').offsetHeight
-            const average = tbodyHeight / (this.vCount + this.bufferCount)
-            if (tbodyHeight && average && this.vertual) {
-                this.vCount = Math.ceil(warpHeight / average)
-                this.itemHeight = Math.round(average)
-                console.log('item')
-            } else if (tbodyHeight && average && !this.vertual) {
-                const tr = this.tableRef.$el.querySelector('.el-table__body-wrapper tr')
-                if (tr) {
-                    this.itemHeight = tr.offsetHeight
-                    console.log(this.itemHeight, 'vas fasle')
+            if (!this.data.length) return
+
+            if (this.vertual) {
+                const eleTableHeight = this.tableRef.$el.offsetHeight
+                const tbody = this.tableRef.$el.querySelector('.el-table__body-wrapper tbody')
+                const tbodyHeight = tbody.offsetHeight
+                const ave = tbodyHeight / this.vCount
+
+                if (tbodyHeight) {
+                    this.itemHeight = ave
+
+                    this.vCount = Math.floor(eleTableHeight / ave) || 1
                 }
 
             }
 
-            console.log(warpHeight, 'warpJeight', average)
-            // 
-
-            this.elWarp.style.height = this.globalHeight + 'px'
-            return this.itemHeight
+            else if (!this.vertual) {
+                const eleTableHeight = this.tableRef.$el.offsetHeight
+                const tr = this.tableRef.$el.querySelector('.el-table__body-wrapper tr')
+                const trHeight = tr?.offsetHeight
+       
+                if (trHeight) {
+                    this.itemHeight = trHeight
+                    this.vCount = Math.floor(eleTableHeight / trHeight) || 1
+                }
+            }
         },
         getGloHeight() {
             if (this.vertual) return this.position[this.data.length - 1] || 0

@@ -1,4 +1,4 @@
-const eleColumn = {
+var eleColumn = {
     name: 'eleColumn',
     functional: true,
     components: { eleColumn },

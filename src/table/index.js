@@ -17,11 +17,7 @@ export default {
             // 
             vCount: 10,
             startIdx: 0,
-            // top
-            // selections: [],
-            // WeakMap: new Map(),
-            // posMap: [],
-            // btn: true
+            scrollTop: 0
         }
     },
     props: {
@@ -44,11 +40,7 @@ export default {
     },
     watch: {
         data() {
-            this.resetPosMap()
             this.updateAllData()
-        },
-        columns() {
-            console.log('columns')
         }
     },
     computed: {
@@ -72,29 +64,33 @@ export default {
         },
     },
     mounted() {
-        console.log('mounted', this)
-
-        this.$nextTick(() => {
-            this.updateAllData()
-        })
-
+        this.updateAllData()
     },
     methods: {
         updateAllData() {
+            this.resetPosMap()
             this.$nextTick(() => {
                 this.initItemHeight()
                 this.getPosition()
                 this.getposMap()
 
+                if (this.elWarpper) {
+                    this.elWarpper.scrollTo({
+                        top: 0,
+                        left: 0,
+                        // behavior: "smooth",
+                    })
+                }
                 this.eventScroll()
             })
         },
         eventScroll(ev) {
             const scrollTop = ev?.target?.scrollTop || 0
+            this.scrollTop = scrollTop
             let topTo = 0
 
             if (!this.vertual) {
-                this.startIdx = Math.floor(scrollTop / this.itemHeight)
+                this.startIdx = Math.floor(scrollTop / this.itemHeight) || 0
                 const bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight
                 topTo = (scrollTop - scrollTop % this.itemHeight) - bufferTop
 
@@ -108,8 +104,8 @@ export default {
 
 
 
-            this.elWarp.style.height = this.getGloHeight() - topTo + 'px'
-            this.elWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
+            this.elWarp.style.height = this.getGloHeight() + 'px'
+            this.elItems.style.transform = `translate3d(0, ${topTo}px, 0)`
 
 
             // left
@@ -122,9 +118,6 @@ export default {
                 this.rightWarp.style.height = this.getGloHeight() - topTo + 'px'
                 this.rightWarp.style.transform = `translate3d(0, ${topTo}px, 0)`
             }
-
-            this.$emit('dataChang', this.vData)
-
         }
 
     },
@@ -133,7 +126,6 @@ export default {
             <el-table data={this.vData} props={{ ...this.$attrs, ...this.attrs }} on={this.$listeners}  >
                 {
                     this.columns.map(col => {
-                        console.log(this.columns)
                         return <eleColumn attrs={{ ...col }} />
                     })
                 }

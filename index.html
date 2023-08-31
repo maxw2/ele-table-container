@@ -76,7 +76,7 @@
                     @select='select'
                     @dataChang="(v)=> this.adata = v"
                     :bufferCount="0"
-
+                    :merge="['zip']"
                     >
             <template slot='append'>
                 <el-button >123123</el-button>
@@ -101,7 +101,7 @@
       },
       template: "#template",
       data: {
-        height: "300px",
+        height: "600px",
         pageOpt: {
           background: true,
           layout: "prev, pager, next",
@@ -110,25 +110,73 @@
         columns: [
           {
             label: "左侧固定",
-            prop: "id",
-            // render(h, props) {
-            //   return h("div", "左侧");
-            // },
+            render(h, props) {
+              return h("div", "左侧");
+            },
             // fixed: 'left'
+          },
+          {
+            prop: "name",
+            label: "姓",
+            // width: "300",
+            sortable: true,
+            render(h, props) {
+              return props.row.id % 2 === 0
+                ? [
+                    h("el-button", props.row.name),
+                    h("el-button", props.row.name),
+                  ]
+                : h("el-button", props.row.name);
+            },
+            // fixed: "left",
+          },
+          {
+            prop: "random",
+            label: "RANDOM",
+            render(h, prop) {
+              return Array.from(Array(prop.row.random), () =>
+                h("el-button", prop.row.random)
+              );
+            },
+            width: "100",
+            // fixed: 'left'
+          },
+          {
+            type: "selection",
+            label: "序号",
+            reserveSelection: "true",
+            // fixed: 'left'
+          },
+          {
+            type: "index",
+            label: "序号",
+          },
+          {
+            label: "基础数据",
+            children: [
+              {
+                prop: "date",
+                label: "日期",
+              },
+            ],
+          },
+          {
+            prop: "zip",
+            label: "合并",
+            width: "500",
+          },
+          {
+            prop: "address",
+            label: "地址",
+            width: "500",
           },
         ],
         adata: [],
         tdata: [],
       },
-      watch: {
-        adata() {
-          console.log("123");
-        },
-      },
       mounted() {
-        this.getData(0);
-        console.log(this.$refs.table1, 'table1')
-    },
+        this.getData(2000);
+      },
       methods: {
         getData(time) {
           setTimeout(() => {

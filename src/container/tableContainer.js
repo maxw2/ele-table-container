@@ -10,52 +10,87 @@ export default {
             loading: false,
         }
     },
-    methods: {
-        getAxios() {
-            this.loading = true
-            this.getData()
-                .finally(() => {
-                    this.loading = false
-                })
+    props: {
+        data: {
+            type: Array,
+            default() {
+                return []
+            }
         },
-        sizeChange(size) {
-            this.pProps.pageSize = size
-            this.loading = true
-            this.getData()
-                .finally(() => {
-                    this.loading = false
-                })
+        getData: {
+            type: Function,
+            default: null
         },
-        currentChange(page) {
-            // if (this.loading) return
-            this.pProps.currentPage = page
-            this.loading = true
-            this.getData()
-                .finally(() => {
-                    this.loading = false
-                })
+        pageOpt: {
+            type: Object,
+            default() {
+                return {
+                    background: true,
+                    layout: "prev,sizes, pager, next, jumper, ->, total",
+                    total: 100,
+                    currentPage: 1,
+                    pageSize: 100,
+                    pageSizes: [10, 20, 30, 40, 50, 100],
+                }
+            }
         }
     },
     mounted() {
         this.getAxios()
     },
+    methods: {
+        getAxios() {
+            if(!this.getData) return 
+            this.loading = true
+            this.getData()
+                .finally(() => {
+                    setTimeout(() => {
+                        this.loading = false
+                    }, 500)
+                })
+        },
+        sizeChange(size) {
+            // this.pProps.pageSize = size
+            this.loading = true
+            this.$emit('update:pageOpt', {...this.pageOpt, pageSize: size})
+            this.getData()
+                .finally(() => {
+                    setTimeout(() => {
+                        this.loading = false
+                    }, 500)
+                })
+        },
+        currentChange(page) {
+            // if (this.loading) return
+            // this.pProps.currentPage = page
+            this.loading = true
+            this.$emit('update:pageOpt', {...this.pageOpt, currentPage: page})
+            this.getData()
+                .finally(() => {
+                    setTimeout(() => {
+                        this.loading = false
+                    }, 500)
+                })
+        }
+    },
+    
     computed: {
-        tProps() {
-            return this.$attrs
-        },
-        pProps() {
-            return this.$attrs.pageOpt
-        },
-        getData() {
-            return this.$attrs.getData
-        },
+        // tProps() {
+        //     return this.$attrs
+        // },
+        // pProps() {
+        //     return this.$attrs.pageOpt
+        // },
+        // getData() {
+        //     return this.$attrs.getData
+        // },
     },
     render() {
         return (
             <div class='ele-table-container'>
-                <ele-table props={this.tProps} v-loading={this.loading}></ele-table>
+                <ele-table data={this.$props.data} attrs={this.$attrs} v-loading={this.loading}></ele-table>
                 <el-pagination
-                    props={this.pProps}
+                    props={this.pageOpt}
                     on={
                         {
                             'size-change': this.sizeChange,

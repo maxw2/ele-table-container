@@ -66,7 +66,7 @@ export default {
                 })
             })
 
-            console.log(this.mergeMap)
+            // console.log(this.mergeMap)
 
         },
         fixBufferMergeMap(mergeKey, rowIndex) {

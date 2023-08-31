@@ -8,7 +8,7 @@ export default {
     props: {
         vertual: {
             type: Boolean,
-            default: true
+            default: false
         },
         estimatedHeight: {
             type: Number,
@@ -24,7 +24,6 @@ export default {
             const tbody = this.elWarp.querySelectorAll('tr')
             const idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0
             // if(this.posMap[idx]) return
-            // console.log('setmap')
             // const idx = this.startIdx - this.bufferCount > 0 ? this.bufferIdx : 0
             let bottom = this.position[idx - 1] || 0
             tbody.forEach((el, index) => {
@@ -34,6 +33,7 @@ export default {
             })
         },
         resetPosMap() {
+            this.position = []
             this.posMap = []
         },
         getPosition() {
@@ -50,14 +50,14 @@ export default {
             return pos
         },
         getPosIdx(scrollTop) {
-            const idx = this.position.findIndex(bottom => scrollTop <= bottom)
-            const bufferIdx = idx - this.bufferCount > 0 ? idx - this.bufferCount : 0
+            const idx = this.position.findIndex(bottom => scrollTop <= bottom) || 0
+            // const bufferIdx = idx - this.bufferCount > 0 ? idx - this.bufferCount : 0
             const height = this.position[idx - 1] ? this.position[idx] - this.position[idx - 1] : this.position[idx]
             const bottom = this.position[idx]
-            const top = bottom - height
+            const top = bottom - height || 0
             const bufferTop = 0
 
-            console.log([idx, top, bufferTop],"[idx, top, bufferTop]")
+            // console.log([idx, top, bufferTop],"[idx, top, bufferTop]")
             return [idx, top, bufferTop]
         }
     }

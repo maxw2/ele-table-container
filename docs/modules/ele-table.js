@@ -165,6 +165,17 @@ var eleColumn = {
   }
 };
 
+// function throttle(fn, time) {
+//     let date = null
+//     return (...arg) => {
+//         if (date) return
+//         date = setTimeout(() => {
+//             fn(...arg)
+//             date = null
+//         }, time)
+//     }
+// }
+
 var init = {
   data: function data() {
     return {
@@ -173,7 +184,8 @@ var init = {
       // 
       elWarp: null,
       elItems: null,
-      elTbody: null
+      elTbody: null,
+      elWarpper: null
     };
   },
   mounted: function mounted() {
@@ -217,6 +229,7 @@ var init = {
       // this.elItems.style.top = '0px'
 
       var elWarpper = elTable.querySelector('.el-table__body-wrapper');
+      this.elWarpper = elWarpper;
       var elWarpperTable = elWarpper.querySelector('table');
       elWarpper.insertBefore(this.elWarp, elWarpperTable);
       this.elItems.appendChild(elWarpperTable);
@@ -251,26 +264,25 @@ var init = {
       elWarpper.addEventListener('scroll', this.eventScroll);
     },
     initItemHeight: function initItemHeight() {
-      if (this.itemHeight) return this.itemHeight;
-      var warpHeight = this.tableRef.$el.offsetHeight;
-      var tbodyHeight = this.tableRef.$el.querySelector('.el-table__body-wrapper tbody').offsetHeight;
-      var average = tbodyHeight / (this.vCount + this.bufferCount);
-      if (tbodyHeight && average && this.vertual) {
-        this.vCount = Math.ceil(warpHeight / average);
-        this.itemHeight = Math.round(average);
-        console.log('item');
-      } else if (tbodyHeight && average && !this.vertual) {
+      if (!this.data.length) return;
+      if (this.vertual) {
+        var eleTableHeight = this.tableRef.$el.offsetHeight;
+        var tbody = this.tableRef.$el.querySelector('.el-table__body-wrapper tbody');
+        var tbodyHeight = tbody.offsetHeight;
+        var ave = tbodyHeight / this.vCount;
+        if (tbodyHeight) {
+          this.itemHeight = ave;
+          this.vCount = Math.floor(eleTableHeight / ave) || 1;
+        }
+      } else if (!this.vertual) {
+        var _eleTableHeight = this.tableRef.$el.offsetHeight;
         var tr = this.tableRef.$el.querySelector('.el-table__body-wrapper tr');
-        if (tr) {
-          this.itemHeight = tr.offsetHeight;
-          console.log(this.itemHeight, 'vas fasle');
+        var trHeight = tr === null || tr === void 0 ? void 0 : tr.offsetHeight;
+        if (trHeight) {
+          this.itemHeight = trHeight;
+          this.vCount = Math.floor(_eleTableHeight / trHeight) || 1;
         }
       }
-      console.log(warpHeight, 'warpJeight', average);
-      // 
-
-      this.elWarp.style.height = this.globalHeight + 'px';
-      return this.itemHeight;
     },
     getGloHeight: function getGloHeight() {
       if (this.vertual) return this.position[this.data.length - 1] || 0;else return this.data.length * this.itemHeight;
@@ -421,7 +433,7 @@ var vertual = {
   props: {
     vertual: {
       type: Boolean,
-      "default": true
+      "default": false
     },
     estimatedHeight: {
       type: Number,
@@ -437,7 +449,6 @@ var vertual = {
       var tbody = this.elWarp.querySelectorAll('tr');
       var idx = this.startIdx - this.bufferCount > 0 ? this.startIdx - this.bufferCount : 0;
       // if(this.posMap[idx]) return
-      // console.log('setmap')
       // const idx = this.startIdx - this.bufferCount > 0 ? this.bufferIdx : 0
       var bottom = this.position[idx - 1] || 0;
       tbody.forEach(function (el, index) {
@@ -447,6 +458,7 @@ var vertual = {
       });
     },
     resetPosMap: function resetPosMap() {
+      this.position = [];
       this.posMap = [];
     },
     getPosition: function getPosition() {
@@ -464,13 +476,14 @@ var vertual = {
     getPosIdx: function getPosIdx(scrollTop) {
       var idx = this.position.findIndex(function (bottom) {
         return scrollTop <= bottom;
-      });
-      idx - this.bufferCount > 0 ? idx - this.bufferCount : 0;
+      }) || 0;
+      // const bufferIdx = idx - this.bufferCount > 0 ? idx - this.bufferCount : 0
       var height = this.position[idx - 1] ? this.position[idx] - this.position[idx - 1] : this.position[idx];
       var bottom = this.position[idx];
-      var top = bottom - height;
+      var top = bottom - height || 0;
       var bufferTop = 0;
-      console.log([idx, top, bufferTop], "[idx, top, bufferTop]");
+
+      // console.log([idx, top, bufferTop],"[idx, top, bufferTop]")
       return [idx, top, bufferTop];
     }
   }
@@ -553,7 +566,8 @@ var merge = {
           }
         });
       });
-      console.log(this.mergeMap);
+
+      // console.log(this.mergeMap)
     },
     fixBufferMergeMap: function fixBufferMergeMap(mergeKey, rowIndex) {
       // 修改第一个
@@ -627,15 +641,10 @@ var eleTable = {
       itemHeight: 0,
       // 
       vCount: 10,
-      startIdx: 0
-      // top
-      // selections: [],
-      // WeakMap: new Map(),
-      // posMap: [],
-      // btn: true
+      startIdx: 0,
+      scrollTop: 0
     };
   },
-
   props: {
     data: {
       type: Array,
@@ -656,11 +665,7 @@ var eleTable = {
   },
   watch: {
     data: function data() {
-      this.resetPosMap();
       this.updateAllData();
-    },
-    columns: function columns() {
-      console.log('columns');
     }
   },
   computed: {
@@ -682,28 +687,34 @@ var eleTable = {
     }
   },
   mounted: function mounted() {
-    var _this = this;
-    console.log('mounted', this);
-    this.$nextTick(function () {
-      _this.updateAllData();
-    });
+    this.updateAllData();
   },
   methods: {
     updateAllData: function updateAllData() {
-      var _this2 = this;
+      var _this = this;
+      this.resetPosMap();
       this.$nextTick(function () {
-        _this2.initItemHeight();
-        _this2.getPosition();
-        _this2.getposMap();
-        _this2.eventScroll();
+        _this.initItemHeight();
+        _this.getPosition();
+        _this.getposMap();
+        if (_this.elWarpper) {
+          _this.elWarpper.scrollTo({
+            top: 0,
+            left: 0
+            // behavior: "smooth",
+          });
+        }
+
+        _this.eventScroll();
       });
     },
     eventScroll: function eventScroll(ev) {
       var _ev$target;
       var scrollTop = (ev === null || ev === void 0 ? void 0 : (_ev$target = ev.target) === null || _ev$target === void 0 ? void 0 : _ev$target.scrollTop) || 0;
+      this.scrollTop = scrollTop;
       var topTo = 0;
       if (!this.vertual) {
-        this.startIdx = Math.floor(scrollTop / this.itemHeight);
+        this.startIdx = Math.floor(scrollTop / this.itemHeight) || 0;
         var bufferTop = (this.startIdx - this.bufferIdx) * this.itemHeight;
         topTo = scrollTop - scrollTop % this.itemHeight - bufferTop;
       }
@@ -716,8 +727,8 @@ var eleTable = {
         this.startIdx = idx;
         topTo = top - _bufferTop;
       }
-      this.elWarp.style.height = this.getGloHeight() - topTo + 'px';
-      this.elWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
+      this.elWarp.style.height = this.getGloHeight() + 'px';
+      this.elItems.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
 
       // left
       if (this.leftWarp) {
@@ -729,11 +740,9 @@ var eleTable = {
         this.rightWarp.style.height = this.getGloHeight() - topTo + 'px';
         this.rightWarp.style.transform = "translate3d(0, ".concat(topTo, "px, 0)");
       }
-      this.$emit('dataChang', this.vData);
     }
   },
   render: function render() {
-    var _this3 = this;
     var h = arguments[0];
     return h("el-table", _mergeJSXProps2([{
       "attrs": {
@@ -744,7 +753,6 @@ var eleTable = {
     }, {}, {
       "on": this.$listeners
     }]), [this.columns.map(function (col) {
-      console.log(_this3.columns);
       return h(eleColumn, _mergeJSXProps2([{}, {
         "attrs": _objectSpread2({}, col)
       }]));
@@ -764,59 +772,101 @@ var tableContainer = {
       loading: false
     };
   },
-  methods: {
-    getAxios: function getAxios() {
-      var _this = this;
-      this.loading = true;
-      this.getData()["finally"](function () {
-        _this.loading = false;
-      });
+  props: {
+    data: {
+      type: Array,
+      "default": function _default() {
+        return [];
+      }
     },
-    sizeChange: function sizeChange(size) {
-      var _this2 = this;
-      this.pProps.pageSize = size;
-      this.loading = true;
-      this.getData()["finally"](function () {
-        _this2.loading = false;
-      });
+    getData: {
+      type: Function,
+      "default": null
     },
-    currentChange: function currentChange(page) {
-      var _this3 = this;
-      // if (this.loading) return
-      this.pProps.currentPage = page;
-      this.loading = true;
-      this.getData()["finally"](function () {
-        _this3.loading = false;
-      });
+    pageOpt: {
+      type: Object,
+      "default": function _default() {
+        return {
+          background: true,
+          layout: "prev,sizes, pager, next, jumper, ->, total",
+          total: 100,
+          currentPage: 1,
+          pageSize: 100,
+          pageSizes: [10, 20, 30, 40, 50, 100]
+        };
+      }
     }
   },
   mounted: function mounted() {
     this.getAxios();
   },
-  computed: {
-    tProps: function tProps() {
-      return this.$attrs;
+  methods: {
+    getAxios: function getAxios() {
+      var _this = this;
+      if (!this.getData) return;
+      this.loading = true;
+      this.getData()["finally"](function () {
+        setTimeout(function () {
+          _this.loading = false;
+        }, 500);
+      });
     },
-    pProps: function pProps() {
-      return this.$attrs.pageOpt;
+    sizeChange: function sizeChange(size) {
+      var _this2 = this;
+      // this.pProps.pageSize = size
+      this.loading = true;
+      this.$emit('update:pageOpt', _objectSpread2(_objectSpread2({}, this.pageOpt), {}, {
+        pageSize: size
+      }));
+      this.getData()["finally"](function () {
+        setTimeout(function () {
+          _this2.loading = false;
+        }, 500);
+      });
     },
-    getData: function getData() {
-      return this.$attrs.getData;
+    currentChange: function currentChange(page) {
+      var _this3 = this;
+      // if (this.loading) return
+      // this.pProps.currentPage = page
+      this.loading = true;
+      this.$emit('update:pageOpt', _objectSpread2(_objectSpread2({}, this.pageOpt), {}, {
+        currentPage: page
+      }));
+      this.getData()["finally"](function () {
+        setTimeout(function () {
+          _this3.loading = false;
+        }, 500);
+      });
     }
+  },
+  computed: {
+    // tProps() {
+    //     return this.$attrs
+    // },
+    // pProps() {
+    //     return this.$attrs.pageOpt
+    // },
+    // getData() {
+    //     return this.$attrs.getData
+    // },
   },
   render: function render() {
     var h = arguments[0];
     return h("div", {
       "class": 'ele-table-container'
-    }, [h("ele-table", _mergeJSXProps2([{}, {
-      "props": this.tProps
+    }, [h("ele-table", _mergeJSXProps2([{
+      "attrs": {
+        "data": this.$props.data
+      }
+    }, {
+      "attrs": this.$attrs
     }, {
       "directives": [{
         name: "loading",
         value: this.loading
       }]
     }])), h("el-pagination", _mergeJSXProps2([{}, {
-      "props": this.pProps
+      "props": this.pageOpt
     }, {}, {
       "on": {
         'size-change': this.sizeChange,
