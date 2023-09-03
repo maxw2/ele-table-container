@@ -20,74 +20,35 @@
   </body>
   <script type="text/x-template" id="template">
     <div>
-        <el-table :data='adata' ref='table1' height='200px' >
-            <el-table-column v-for="val in columns" :label="val.label" :prop="val.prop"></el-table-column>
-            <!-- <el-table-column prop='zip' label='合并' >
-                <el-table-column prop='id' label='序号' />
-                <el-table-column prop='zip' label='合并' />
-            </el-table-column>
-            <el-table-column prop='zip' label='合并' /> -->
-        </el-table>
-        <!-- el-table -->
-        <!-- <ele-table class='ele-table' ref='table' height='200px'
-        :data="tdata"
-        :columns="columns"
-        :row-key="getRowKey"
-        :default-expand-all="false"
-        :expand-row-keys="[1,2]"
-        :vertual='true'
-        @select-all="selectAll"
-        @selection-change="selectionChange"
-        @row-click='rowClick'
-        @select='select'
-        :span-method="arraySpanMethod"
-        /> -->
-            <div style='height: 1000px'>
-                <ele-table class='ele-table' ref='table' :height='height'
-                :data="tdata"
-                :columns="columns"
-                :row-key="(row) => row.id"
-                :default-expand-all="false"
-                :expand-row-keys="[1,2]"
-                :vertual='true'
-                @select-all="selectAll"
-                @selection-change="selectionChange"
-                @row-click='rowClick'
-                @select='select'
-                @dataChang="(v)=> this.adata = v"
-                :bufferCount="0"
-                >
-        <template slot='append'>
-            <el-button >123123</el-button>
-        </template>
-    </ele-table>
-
-
-                <ele-table class='ele-table' ref='table' :height='height'
-                    :data="tdata"
-                    :columns="columns"
-                    :row-key="getRowKey"
-                    :default-expand-all="false"
-                    :expand-row-keys="[1,2]"
-                    :vertual='true'
-                    @select-all="selectAll"
-                    @selection-change="selectionChange"
-                    @row-click='rowClick'
-                    @select='select'
-                    @dataChang="(v)=> this.adata = v"
-                    :bufferCount="0"
-                    :merge="['zip']"
-                    >
-            <template slot='append'>
-                <el-button >123123</el-button>
-            </template>
-        </ele-table>
-            </div>
+        <ele-table class='ele-table' ref='table' :height='height'
+          :data="tdata"
+          :columns="columns"
+          :row-key="(row) => row.id"
+          :vertual='true'
+          @select-all="selectAll"
+          @selection-change="selectionChange"
+          @row-click='rowClick'
+          @select='select'
+          v-show='show'
+        />
+        <!--  -->
+        <ele-table class='ele-table' :height='height'
+          :data="tdata"
+          :columns="columns"
+          :row-key="getRowKey"
+          :vertual='false'
+          @select-all="selectAll"
+          @selection-change="selectionChange"
+          @row-click='rowClick'
+          @select='select'
+          :merge="['zip']"
+        />
         <!-- table -->
-
         <el-button @click="onClick">toggleAllSelection</el-button>
+        <el-button @click='clearData'>clearData</el-button>
         <el-button @click='getData(2000)'>ajax</el-button>
         <el-input v-model='height'></el-input>
+        <el-switch v-model='show' />
     </div>
   </script>
   <script type="module">
@@ -101,7 +62,8 @@
       },
       template: "#template",
       data: {
-        height: "600px",
+        height: "300px",
+        show: false,
         pageOpt: {
           background: true,
           layout: "prev, pager, next",
@@ -111,7 +73,8 @@
           {
             label: "左侧固定",
             render(h, props) {
-              return h("div", "左侧");
+              Array.from(Array(props.row.random), () => h("div", "左侧"));
+              // return h("div", "左侧");
             },
             // fixed: 'left'
           },
@@ -120,24 +83,24 @@
             label: "姓",
             // width: "300",
             sortable: true,
-            render(h, props) {
-              return props.row.id % 2 === 0
-                ? [
-                    h("el-button", props.row.name),
-                    h("el-button", props.row.name),
-                  ]
-                : h("el-button", props.row.name);
-            },
+            // render(h, props) {
+            //   return props.row.id % 2 === 0
+            //     ? [
+            //         h("el-button", props.row.name),
+            //         h("el-button", props.row.name),
+            //       ]
+            //     : h("el-button", props.row.name);
+            // },
             // fixed: "left",
           },
           {
             prop: "random",
             label: "RANDOM",
-            render(h, prop) {
-              return Array.from(Array(prop.row.random), () =>
-                h("el-button", prop.row.random)
-              );
-            },
+            // render(h, prop) {
+            //   return Array.from(Array(prop.row.random), () =>
+            //     h("el-button", prop.row.random)
+            //   );
+            // },
             width: "100",
             // fixed: 'left'
           },
@@ -150,6 +113,7 @@
           {
             type: "index",
             label: "序号",
+            // fixed: "left",
           },
           {
             label: "基础数据",
@@ -169,13 +133,21 @@
             prop: "address",
             label: "地址",
             width: "500",
+            // fixed: 'left'
           },
         ],
         adata: [],
         tdata: [],
       },
+      watch: {
+        show(val) {
+          if(val) this.$refs.table.updateAllData()
+          
+        }
+      },
       mounted() {
-        this.getData(2000);
+        console.log(this.$refs.table, 'table')
+        // this.getData(2000);
       },
       methods: {
         getData(time) {
@@ -194,9 +166,11 @@
             });
           }, time);
         },
-
+        clearData() {
+          this.tdata = []
+        },
         getRowKey(row) {
-          return row.name;
+          return row.id;
         },
         selectAll(selection) {
           console.log(selection, "##selectAll##");

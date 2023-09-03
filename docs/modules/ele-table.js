@@ -272,7 +272,7 @@ var init = {
         var ave = tbodyHeight / this.vCount;
         if (tbodyHeight) {
           this.itemHeight = ave;
-          this.vCount = Math.floor(eleTableHeight / ave) || 1;
+          this.vCount = Math.ceil(eleTableHeight / ave) || 1;
         }
       } else if (!this.vertual) {
         var _eleTableHeight = this.tableRef.$el.offsetHeight;
@@ -280,7 +280,7 @@ var init = {
         var trHeight = tr === null || tr === void 0 ? void 0 : tr.offsetHeight;
         if (trHeight) {
           this.itemHeight = trHeight;
-          this.vCount = Math.floor(_eleTableHeight / trHeight) || 1;
+          this.vCount = Math.ceil(_eleTableHeight / trHeight) || 1;
         }
       }
     },

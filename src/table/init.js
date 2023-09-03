@@ -111,7 +111,7 @@ export default {
                 if (tbodyHeight) {
                     this.itemHeight = ave
 
-                    this.vCount = Math.floor(eleTableHeight / ave) || 1
+                    this.vCount = Math.ceil(eleTableHeight / ave) || 1
                 }
 
             }
@@ -123,7 +123,7 @@ export default {
        
                 if (trHeight) {
                     this.itemHeight = trHeight
-                    this.vCount = Math.floor(eleTableHeight / trHeight) || 1
+                    this.vCount = Math.ceil(eleTableHeight / trHeight) || 1
                 }
             }
         },
