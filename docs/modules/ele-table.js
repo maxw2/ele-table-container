@@ -692,6 +692,7 @@ var eleTable = {
   methods: {
     updateAllData: function updateAllData() {
       var _this = this;
+      if (!this.data.length) return;
       this.resetPosMap();
       this.$nextTick(function () {
         _this.initItemHeight();

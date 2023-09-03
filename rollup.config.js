@@ -9,8 +9,9 @@ import eslint from '@rollup/plugin-eslint';
 export default {
   input: 'src/index.js',
   output: [{
+    name: 'EleTable',
     file: 'lib/ele-table.js',
-    format: 'es',
+    format: 'umd',
     sourcemap: false,
     plugins: [terser()]
   }, {

@@ -68,6 +68,7 @@ export default {
     },
     methods: {
         updateAllData() {
+            if(!this.data.length) return
             this.resetPosMap()
             this.$nextTick(() => {
                 this.initItemHeight()
