@@ -1,6 +1,6 @@
 {
   "name": "ele-table-container",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "/lib/ele-table.js",
   "author": "maxw2",
   "license": "MIT",

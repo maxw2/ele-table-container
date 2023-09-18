@@ -10,13 +10,13 @@
   <!-- <script src="https://unpkg.com/element-ui/lib/index.js"></script> -->
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
   <script src="https://unpkg.com/element-ui/lib/index.js"></script>
-
+  <script src="https://www.itxst.com/package/sortable/sortable.min.js"></script>
   <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" />
 </head>
 
 <body>
   <div id="app">
-    <el-select @visible-change="visibleChange" >
+    <!-- <el-select @visible-change="visibleChange" >
       <div class="empty" slot="empty">
         <ele-table size="mini" class='ele-table-1' ref='table' :height='height' :data="tdata" :columns="columns"
           row-key="id" :vertual='false' @select-all="selectAll" @selection-change="selectionChange"
@@ -24,13 +24,14 @@
       </div>
 
 
-    </el-select>
-
+    </el-select> -->
+    <ele-table size="mini" class='ele-table-1' ref='table' :height='height' :data="tdata" :columns="columns"
+      row-key="id" :vertual='false' @select-all="selectAll" @selection-change="selectionChange" @row-click='rowClick'
+      @select='select' :merge="['zip']"></ele-table>
     <!--  -->
-    <ele-table-container class='ele-table-2' :height='height' :data="tdata" :columns="columns" row-key="id"
+    <!-- <ele-table-container ref='table' class='ele-table-2' :height='height' :data="tdata" :columns="columns" row-key="id"
       :vertual='false' @select-all="selectAll" @selection-change="selectionChange" @row-click='rowClick'
-      @select='select' :merge="['zip']"></ele-table-container>
-    <el-table></el-table>
+      @select='select' :merge="['zip']"></ele-table-container> -->
     <el-button @click="onClick">toggleAllSelection</el-button>
     <el-button @click='clearData'>clearData</el-button>
     <el-button @click='getData(1000)'>ajax</el-button>
@@ -123,15 +124,55 @@
       ],
       adata: [],
       tdata: [],
+      sortable: null
     },
     mounted() {
-      console.log(this.$refs.table, 'table')
-      // this.getData(2000);
+      this.$nextTick(() => {
+        let headerTr = document.querySelectorAll('thead tr')
+        console.log(headerTr)
+        const that = this
+        headerTr.forEach(el => {
+          console.log(el)
+          this.sortable = new Sortable(el, {
+            onEnd(ev) {
+              const clone = [...that.columns]
+              const { oldIndex, newIndex } = ev
+
+              let old = clone.slice(oldIndex, oldIndex + 1)[0]
+              let news = clone.slice(newIndex, newIndex + 1)[0]
+              let oldWidth = '0'
+              let newWidth = '0'
+
+              if (old.width) oldWidth = old.width
+              if(news.width) newWidth = news.width
+             
+             
+              oldWidth ? news.width = oldWidth : null
+              newWidth ? old.width = newWidth : null
+
+              clone.splice(oldIndex, 1, news)
+              clone.splice(newIndex, 1, old)
+
+              
+              that.$nextTick(() => {
+                // that.columns = []
+                that.columns = clone
+                console.log(clone)
+              })
+
+              // console.log(that.$refs.table)
+            }
+          })
+        })
+      })
+
+
+
     },
     methods: {
       visibleChange(val) {
-        if(val) {
-          this.$nextTick(()=> {
+        if (val) {
+          this.$nextTick(() => {
             this.$refs.table.updateAllData()
 
           })
