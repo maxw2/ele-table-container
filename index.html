@@ -27,7 +27,7 @@
     </el-select> -->
     <ele-table size="mini" class='ele-table-1' ref='table' :height='height' :data="tdata" :columns="columns"
       row-key="id" :vertual='false' @select-all="selectAll" @selection-change="selectionChange" @row-click='rowClick'
-      @select='select' :merge="['zip']"></ele-table>
+      @select='select' :merges="[ 'order', 'zip']"></ele-table>
     <!--  -->
     <!-- <ele-table-container ref='table' class='ele-table-2' :height='height' :data="tdata" :columns="columns" row-key="id"
       :vertual='false' @select-all="selectAll" @selection-change="selectionChange" @row-click='rowClick'
@@ -48,7 +48,7 @@
       eleTableContainer: EleTable.TableContainer,
     },
     data: {
-      height: "300px",
+      height: "500px",
       show: false,
       pageOpt: {
         background: true,
@@ -82,6 +82,17 @@
         {
           prop: "random",
           label: "RANDOM",
+          // render(h, prop) {
+          //   return Array.from(Array(prop.row.random), () =>
+          //     h("el-button", prop.row.random)
+          //   );
+          // },
+          width: "100",
+          // fixed: 'left'
+        },
+        {
+          prop: "order",
+          label: "order",
           // render(h, prop) {
           //   return Array.from(Array(prop.row.random), () =>
           //     h("el-button", prop.row.random)
@@ -189,6 +200,7 @@
               address: `上海市普陀区金沙江路 ${index} 弄`,
               city: "普陀区",
               zip: Math.floor(Math.random() * 5),
+              order: Math.floor(Math.random() * 5),
               random: random,
             };
           });

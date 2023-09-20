@@ -502,7 +502,7 @@ var merge = {
   },
 
   props: {
-    merge: {
+    merges: {
       type: Array,
       "default": function _default() {
         return [];
@@ -512,6 +512,9 @@ var merge = {
   watch: {
     data: function data(newVal) {
       this.initMergeMap(newVal);
+    },
+    columns: function columns(newVal) {
+      this.mergeKeyIndex = this.getMergeKeyIndex(newVal);
     }
   },
   created: function created() {
@@ -525,7 +528,7 @@ var merge = {
   // updated
   methods: {
     initSpanMethod: function initSpanMethod() {
-      if (this.$attrs['span-method']) return;else if (this.merge) this.attrs['span-method'] = this.handlerMerge;
+      if (this.$attrs["span-method"]) return;else if (this.merges) this.attrs["span-method"] = this.handlerMerge;
     },
     // 初始化映射
     initMergeMap: function initMergeMap() {
@@ -533,9 +536,9 @@ var merge = {
       var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.data;
       // const propsArr = this.getRowKey()
       var rowSpanMap = {};
-      data.map(function (row, index) {
+      data.forEach(function (row, index) {
         var nextRow = data[index + 1] || {};
-        _this.merge.forEach(function (key) {
+        _this.merges.forEach(function (key) {
           if (!_this.mergeMap[key]) _this.mergeMap[key] = [];
           if (row[key] === nextRow[key]) {
             if (rowSpanMap[key]) {
@@ -584,24 +587,26 @@ var merge = {
       } else return this.mergeMap[mergeKey][rowIndex];
     },
     getMergeKeyIndex: function getMergeKeyIndex(columns) {
+      var mergeKeyIndex = [];
       function getKeyIndex(columns, mergeKey) {
         var idx = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
         var merg = {};
         columns.forEach(function (val, index) {
           if (val.prop === mergeKey) {
-            merg = {
+            mergeKeyIndex.push({
               key: mergeKey,
               index: index + idx
-            };
+            });
           } else if (val.children) {
             merg = getKeyIndex(val.children, mergeKey, index);
           }
         });
         return merg;
       }
-      return this.merge.map(function (key) {
+      this.merges.map(function (key) {
         return getKeyIndex(columns, key);
       });
+      return mergeKeyIndex;
     },
     handlerMerge: function handlerMerge(_ref) {
       var _this2 = this;
