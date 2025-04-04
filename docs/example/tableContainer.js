@@ -42,8 +42,8 @@ export default {
     },
     methods: {
         // request-api
-        getData() {
-            const url = `https://mock.presstime.cn/mock/63e1d03b47892c6527977c5f/example/list?page=${this.pageOpt.currentPage}&size=${this.pageOpt.pageSize}`
+        getData({size, current}) {
+            const url = `https://mock.presstime.cn/mock/63e1d03b47892c6527977c5f/example/list?page=${current}&size=${size}`
             return fetch(url)
                 .then(res => res.json())
                 .then(res => this.tableData = res.data._req)

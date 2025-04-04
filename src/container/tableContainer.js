@@ -8,6 +8,8 @@ export default {
     data() {
         return {
             loading: false,
+            size: 0,
+            current: 0
         }
     },
     props: {
@@ -41,8 +43,10 @@ export default {
     methods: {
         getAxios() {
             if(!this.getData) return 
+            if(!this.size) this.size = this.pageOpt.pageSize
+            if(!this.current) this.current = this.pageOpt.currentPage
             this.loading = true
-            this.getData()
+            this.getData({size: this.size, current: this.current })
                 .finally(() => {
                     setTimeout(() => {
                         this.loading = false
@@ -50,27 +54,31 @@ export default {
                 })
         },
         sizeChange(size) {
+            this.size = size
+            this.getAxios()
             // this.pProps.pageSize = size
-            this.loading = true
-            this.$emit('update:pageOpt', {...this.pageOpt, pageSize: size})
-            this.getData()
-                .finally(() => {
-                    setTimeout(() => {
-                        this.loading = false
-                    }, 500)
-                })
+            // this.loading = true
+            // this.$emit('update:pageOpt', {...this.pageOpt, pageSize: size})
+            // this.getData()
+            //     .finally(() => {
+            //         setTimeout(() => {
+            //             this.loading = false 
+            //         }, 500)
+            //     })
         },
         currentChange(page) {
+            this.current = page
+            this.getAxios()
             // if (this.loading) return
             // this.pProps.currentPage = page
-            this.loading = true
-            this.$emit('update:pageOpt', {...this.pageOpt, currentPage: page})
-            this.getData()
-                .finally(() => {
-                    setTimeout(() => {
-                        this.loading = false
-                    }, 500)
-                })
+            // this.loading = true
+            // this.$emit('update:pageOpt', {...this.pageOpt, currentPage: page})
+            // this.getData()
+            //     .finally(() => {
+            //         setTimeout(() => {
+            //             this.loading = false
+            //         }, 500)
+            //     })
         }
     },
     
