@@ -6,7 +6,7 @@
 - 基于 100%原生 API
 - 实现 JSON 动态驱动表单
 - 为实现自定义表格 / 嵌套表头等需求仅新增 [**slotName**](guide/eleTable?id=自定义列模板) / [**children**](guide/eleTable?id=多级表头) 两个字段
-- [文档地址(demo)]()
+- [文档地址(demo)](https://maxw2.github.io/ele-table-container/)
 
 ### 初始化
 
